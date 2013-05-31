@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using System.Diagnostics;
 
 using GoogleDocs_JobList.Properties;
+using RPM.Api;
 using Google.GData.Spreadsheets;
 using System.Collections;
 
@@ -158,9 +159,20 @@ namespace GoogleDocs_JobList
 
         private void SynchronizeStart_Click(object sender, RoutedEventArgs e)
         {
-            //CellFeed cellFeed = access.service.Query(new CellQuery(ws.CellFeedLink));
+            if (this.testRPMAPI())
+            {
+                //this.showSetupWindow(true);
+            }
 
         }
+
+        private Boolean testRPMAPI()
+        {
+            RPMApi rpm = new RPMApi(this.rpmApiUrl, this.rpmApiKey);
+            string info = rpm.info();
+            return true;
+        }
+
         #region AsyncWork For Loading Data into Google Docs
         private string OpenSpreadsheetText;
         void worker_DoWork(object sender, DoWorkEventArgs e)
