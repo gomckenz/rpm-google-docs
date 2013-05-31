@@ -27,7 +27,7 @@ namespace GoogleDocs_JobList
 
         }
 
-        public WorksheetEntry getDataWorksheet()  
+        public WorksheetEntry getDataWorksheet()
         {
             WorksheetEntry found = searchForSpreadsheet(this.applicationName);
             if (found == null)
@@ -62,9 +62,7 @@ namespace GoogleDocs_JobList
 
             DocumentEntry newEntry = docService.Insert(DocumentsListQuery.documentsBaseUri, entry);
 
-            WorksheetEntry theWS  =  this.searchForSpreadsheet(entry.Title.Text);
-            theWS.Rows = 1;
-            return theWS;
+            return this.searchForSpreadsheet(entry.Title.Text);
         }
 
         public string getSpreadsheetURL(string sheetName)
@@ -77,9 +75,9 @@ namespace GoogleDocs_JobList
             DocumentsListQuery docQuery = new DocumentsListQuery();
             docQuery.Title = sheetName;
             //docQuery.TitleExact = true;
-            
+
             DocumentsFeed feed = docService.Query(docQuery);
-            DocumentEntry entry = (DocumentEntry) feed.Entries[0];
+            DocumentEntry entry = (DocumentEntry)feed.Entries[0];
 
             return "https://docs.google.com/spreadsheet/ccc?key=" + entry.ResourceId.Replace("spreadsheet:", "");
         }
