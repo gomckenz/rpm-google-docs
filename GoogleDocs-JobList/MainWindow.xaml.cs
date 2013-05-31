@@ -35,9 +35,9 @@ namespace GoogleDocs_JobList
         private string appName;
         private string accessToken;
         private string refreshToken;
-        // To get a clientId and Secret register an application at: https://code.google.com/apis/console
-        private string clientId = (string)Settings.Default["GoogleAPIClientId"];
-        private string clientSecret = (string)Settings.Default["GoogleAPIClientSecret"];
+        
+        private string clientId = GoogleOAuthSettings.OAuthClientId;
+        private string clientSecret = GoogleOAuthSettings.OAuthClientSecret;
         private WorksheetEntry ws;
         private GoogleSpreadsheetAccess access;
 

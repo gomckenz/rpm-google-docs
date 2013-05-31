@@ -104,6 +104,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AppSetupChangedEventArgs.cs" />
+    <Compile Include="Properties\GoogleOAuthSettingsSample.cs" />
+    <Compile Include="Properties\GoogleOAuthSettings.cs" />
     <Compile Include="GoogleSpreadsheetAccess.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Setup.xaml.cs">

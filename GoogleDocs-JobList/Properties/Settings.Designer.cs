@@ -94,7 +94,7 @@ namespace GoogleDocs_JobList.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("380463698420.apps.googleusercontent.com")]
         public string GoogleAPIClientId {
             get {
                 return ((string)(this["GoogleAPIClientId"]));
@@ -103,7 +103,7 @@ namespace GoogleDocs_JobList.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("DMOipGVkrkr3J5EXX2I5UPFH")]
         public string GoogleAPIClientSecret {
             get {
                 return ((string)(this["GoogleAPIClientSecret"]));
