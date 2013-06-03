@@ -107,6 +107,14 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AppSetupChangedEventArgs.cs" />
+    <Compile Include="lib\RPM\ApiResults\InfoResult.cs" />
+    <Compile Include="lib\RPM\ApiResults\ProcForm.cs" />
+    <Compile Include="lib\RPM\ApiResults\ProcFormField.cs" />
+    <Compile Include="lib\RPM\ApiResults\ProcResult.cs" />
+    <Compile Include="lib\RPM\ApiResults\ProcsResult.cs" />
+    <Compile Include="lib\RPM\ApiResults\ProcFormsResult.cs" />
+    <Compile Include="lib\RPM\ApiResults\RPMApiError.cs" />
+    <Compile Include="lib\RPM\ApiResults\ProcFormData.cs" />
     <Compile Include="Properties\GoogleOAuthSettingsSample.cs" />
     <Compile Include="Properties\GoogleOAuthSettings.cs" />
     <Compile Include="lib\GoogleSpreadsheetAccess.cs" />

@@ -12,15 +12,19 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Dynamic;
 
+using System.Collections;
 using System.Diagnostics;
+using System.ComponentModel;
 
 using GoogleDocs_JobList.Properties;
-using RPM.Api;
-using Google.GData.Spreadsheets;
-using System.Collections;
 
-using System.ComponentModel;
+using Google.GData.Client;
+using Google.GData.Spreadsheets;
+
+using RPM.Api;
+using RPM.ApiResults;
 
 namespace GoogleDocs_JobList
 {
@@ -42,6 +46,20 @@ namespace GoogleDocs_JobList
         private WorksheetEntry ws;
         private GoogleSpreadsheetAccess access;
 
+        private RPMApi _api;
+        private RPMApi API
+        {
+            get
+            {
+                if (_api == null)
+                {
+                    _api = new RPMApi(this.rpmApiUrl, this.rpmApiKey);
+                }
+                return _api;
+            }
+        }
+
+        #region Fake Data To Generate Jobs Information
         private Dictionary<String, int> siteNames = new Dictionary<string, int>()
         {
             {"Abyssinia", 0}, {"Cook", 0}, {"Douala", 0}, {"Karakoram", 0}, {"Kunashiri", 0}, {"Lagos", 0},
@@ -64,9 +82,9 @@ namespace GoogleDocs_JobList
             "Pump", "Compressor", "Pipeline", "Gasket", "Steam Trap", "Valve",
             "Transformer", "Drive Train", "Motor", "Heat Tracing"
         };
+        #endregion
 
-        private readonly BackgroundWorker worker = new BackgroundWorker();
-
+        private readonly BackgroundWorker writeToGoogleWorker = new BackgroundWorker();
 
         public MainWindow()
         {
@@ -74,10 +92,10 @@ namespace GoogleDocs_JobList
             this.appName = (string)Settings.Default["ApplicationName"];
             this.showSetupWindow();
             this.OpenSpreadsheetText = this.OpenGoogleSpreadsheet.Content.ToString();
-            this.worker.DoWork += worker_DoWork;
-            this.worker.RunWorkerCompleted += worker_RunWorkerCompleted;
-            this.worker.WorkerReportsProgress = true;
-            this.worker.ProgressChanged += worker_ProgressChanged;
+            this.writeToGoogleWorker.DoWork += worker_DoWork;
+            this.writeToGoogleWorker.RunWorkerCompleted += worker_RunWorkerCompleted;
+            this.writeToGoogleWorker.WorkerReportsProgress = true;
+            this.writeToGoogleWorker.ProgressChanged += worker_ProgressChanged;
         }
 
         private void SaveSetupOption(object sender, AppSetupChangedEventArgs e)
@@ -120,6 +138,22 @@ namespace GoogleDocs_JobList
         private void OpenGoogleSpreadsheet_Click(object sender, RoutedEventArgs e)
         {
             this.OpenGoogleSpreadsheet.Content = "Starting...";
+            this.doGoogleAuth();
+            if (this.ws.Title.Text == "Sheet 1")
+            {
+                this.ws.Title.Text = "Data";
+                this.ws.Update();
+                writeToGoogleWorker.RunWorkerAsync();
+            }
+            else
+            {
+                this.OpenGoogleSpreadsheet.Content = this.OpenSpreadsheetText;
+                Process.Start(access.getSpreadsheetURL(this.appName));
+            }
+        }
+
+        private void doGoogleAuth()
+        {
             if (this.accessToken == "")
             {
                 GoogleOauthAccess.getAccessTokens(
@@ -136,41 +170,173 @@ namespace GoogleDocs_JobList
             }
 
             this.access = new GoogleSpreadsheetAccess(
-                this.appName, this.clientId, 
+                this.appName, this.clientId,
                 this.clientSecret, this.accessToken
             );
-            
-            this.ws = access.getDataWorksheet();
-            if (this.ws.Title.Text == "Sheet 1")
-            {
-                this.ws.Title.Text = "Data";
-                this.ws.Update();
-                worker.RunWorkerAsync();
-            }
-            else
-            {
-                this.OpenGoogleSpreadsheet.Content = this.OpenSpreadsheetText;
-                Process.Start(access.getSpreadsheetURL(this.appName));
-            }
-            
-        }
 
-        
+            this.ws = access.getDataWorksheet();
+        }
 
         private void SynchronizeStart_Click(object sender, RoutedEventArgs e)
         {
-            if (this.testRPMAPI())
-            {
-                //this.showSetupWindow(true);
-            }
-
+            ProcsResult procs = this.getAllProcs();
+            ProcResult ilpProc = this.getProc("ILP-Incident Learning Process", procs);
+            ProcResult externalJobs = this.getProc("External-JobInformation", procs);
+            this.synchronizeJobInformation(externalJobs);
         }
 
+        #region RPM API Interaction
         private Boolean testRPMAPI()
         {
             RPMApi rpm = new RPMApi(this.rpmApiUrl, this.rpmApiKey);
-            string info = rpm.info();
+            InfoResult info = rpm.info();
             return true;
+        }
+
+        private ProcsResult getAllProcs()
+        {
+            RPMApi rpm = new RPMApi(this.rpmApiUrl, this.rpmApiKey);
+            ProcsResult p = rpm.Procs();
+            return p;
+        }
+
+        private void synchronizeJobInformation(ProcResult jobProc)
+        {
+            Dictionary<string, ProcForm> forms = this.byExternalJobID(jobProc.ProcessID, this.getListOfForms(jobProc.ProcessID));
+            Dictionary<string, Tuple<string, string>> googleData = this.getGoogleDocsJobs();
+
+            foreach (string jobId in googleData.Keys)
+            {
+                string description = googleData[jobId].Item1;
+                string location   = googleData[jobId].Item2;
+                if (forms.ContainsKey(jobId))
+                {
+                    ProcForm form = forms[jobId];
+                    if (form.valueForField("Job Description") != description || form.valueForField("Job Location") != location)
+                    {
+                        this.updateJobForm(forms[jobId], description, location);
+                    }
+                }
+                else
+                {
+                    this.createJobForm(jobProc.ProcessID, jobId, description, location);
+                }
+            }
+        }
+
+        private void updateJobForm(ProcForm procForm, string description, string location)
+        {
+            dynamic jobData = new ExpandoObject();
+            jobData.FormID = procForm.FormID;
+            List<object> fields = new List<object>
+            {
+                new
+                {
+                    Field = "Job Description",
+                    Value = description
+                },
+                new
+                {
+                    Field = "Job Location",
+                    Value = location
+                }
+            };
+            jobData.Fields = fields;
+            this.API.ProcFormEdit(formData: jobData);
+        }
+
+        private void createJobForm(int processID, string jobId, string description, string location)
+        {
+            dynamic jobData = new ExpandoObject();
+            List<object> fields = new List<object>
+            {
+                new
+                {
+                    Field = "JobId",
+                    Value = jobId
+                },
+                new
+                {
+                    Field = "Job Description",
+                    Value = description
+                },
+                new
+                {
+                    Field = "Job Location",
+                    Value = location
+                }
+            };
+            jobData.Fields = fields;
+            ProcFormData form = this.API.ProcFormAdd(processID, jobData);
+        }
+
+        private Dictionary<string, ProcForm> byExternalJobID(int processID, List<ProcForm> list)
+        {
+            Dictionary<string, ProcForm> converted = new Dictionary<string, ProcForm>(list.Count);
+            foreach (ProcForm form in list)
+            {
+                ProcFormData formData = this.API.ProcForm(processID, formID: form.FormID);
+                converted.Add(formData.Form.valueForField("JobId"), formData.Form);
+            }
+            return converted;
+        }
+
+        private List<ProcForm> getListOfForms(int ProcessID)
+        {
+            List<ProcForm> forms = new List<ProcForm>();
+            try
+            {
+                ProcFormsResult result = this.API.ProcForms(ProcessID);
+                forms = result.Forms;
+            }
+            catch (RPMApiError e)
+            {
+                if (e.Message != "No forms")
+                {
+                    throw e;
+                }
+            }
+            return forms;
+        }
+
+        private Dictionary<string, Tuple<string, string>> getGoogleDocsJobs()
+        {
+            Dictionary<string, Tuple<string, string>> jobs = new Dictionary<string, Tuple<string, string>>();
+
+            this.doGoogleAuth();
+            this.ws = this.access.getDataWorksheet();
+            AtomLink feedLink = this.ws.Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
+            ListQuery listQuery = new ListQuery(feedLink.HRef.ToString());
+            ListFeed feed = this.access.service.Query(listQuery);
+
+            foreach (ListEntry row in feed.Entries)
+            {
+                string key  = null;
+                string col1 = null;
+                string col2 = null;
+                foreach (ListEntry.Custom element in row.Elements)
+                {
+                    if (key == null) key = element.Value;
+                    else if (col1 == null) col1 = element.Value;
+                    else if (col2 == null) col2 = element.Value;
+                }
+                jobs.Add(key, new Tuple<string,string>(col1, col2));
+            }
+            return jobs;
+        }
+
+        #endregion
+
+        private ProcResult getProc(string procName , ProcsResult procs)
+        {
+            foreach (ProcResult proc in procs.Procs)
+            {
+                if (proc.Process == procName)
+                {
+                    return proc;
+                }
+            }
+            return null;
         }
 
         #region AsyncWork For Loading Data into Google Docs
@@ -182,7 +348,7 @@ namespace GoogleDocs_JobList
             cellFeed.Insert(new CellEntry(1, 2, "Job Description"));
             cellFeed.Insert(new CellEntry(1, 3, "Job Location"));
 
-            this.loadJobs(cellFeed);
+            this.writeJobsToGoogleDocs(cellFeed);
         }
         void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -196,7 +362,7 @@ namespace GoogleDocs_JobList
             this.OpenGoogleSpreadsheet.Content = "Populating Worksheet: " + progress + "%";
         }
 
-        private void loadJobs(CellFeed cellFeed)
+        private void writeJobsToGoogleDocs(CellFeed cellFeed)
         {
             Random rand = new Random();
             List<String> names = Enumerable.ToList<String>(this.siteNames.Keys);
@@ -207,7 +373,7 @@ namespace GoogleDocs_JobList
                 int count = this.siteNames[randName];
                 this.writeJob(randName, count, (uint)i, cellFeed);
                 this.siteNames[randName] += 1;
-                this.worker.ReportProgress(i * 100 / 40);
+                this.writeToGoogleWorker.ReportProgress(i * 100 / 40);
             }
         }
 
