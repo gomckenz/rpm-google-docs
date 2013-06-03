@@ -107,6 +107,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AppSetupChangedEventArgs.cs" />
+    <Compile Include="AsyncWork\GoogleSpreadsheetWriter.cs" />
     <Compile Include="lib\RPM\ApiResults\InfoResult.cs" />
     <Compile Include="lib\RPM\ApiResults\ProcForm.cs" />
     <Compile Include="lib\RPM\ApiResults\ProcFormField.cs" />

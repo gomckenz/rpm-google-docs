@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.ComponentModel;
 
 using GoogleDocs_JobList.Properties;
+using GoogleDocs_JobList.AsyncWork;
 
 using Google.GData.Client;
 using Google.GData.Spreadsheets;
@@ -59,33 +60,9 @@ namespace GoogleDocs_JobList
             }
         }
 
-        #region Fake Data To Generate Jobs Information
-        private Dictionary<String, int> siteNames = new Dictionary<string, int>()
-        {
-            {"Abyssinia", 0}, {"Cook", 0}, {"Douala", 0}, {"Karakoram", 0}, {"Kunashiri", 0}, {"Lagos", 0},
-            {"Louisiade", 0}, {"Netherlands", 0}, {"Suriname", 0}, {"Outer", 0}, {"Peshawar", 0},
-            {"Sala", 0}, {"Velez", 0}, {"Thessaloniki", 0}, {"Tyrrhenian", 0}, {"Wetar", 0}, {"Yugoslavia", 0},
-            {"Jersey", 0}, {"Marshall", 0}, {"Tokelau", 0}, {"Amami", 0}, {"Amsterdam", 0}, {"Andaman", 0},
-            {"Bonin", 0}, {"Bothnia", 0},  {"Dodecanese", 0}, {"Nuuk", 0}, {"Guatemala", 0}, {"Lobamba", 0},
-            {"Manipa", 0}, {"Maputo", 0}, {"North", 0}, {"Ross", 0}, {"Southern", 0}, {"Archipelago", 0},
-            {"Vostok", 0}, {"Bahamas", 0}, {"Poland", 0}, {"Spain", 0}
-        };
-
-        private System.Collections.ArrayList repairActivities = new System.Collections.ArrayList
-        {
-            "Refurbishment", "Replacement", "Inspection", "Overhaul",
-            "Repair", "Repaint",
-        };
-
-        private System.Collections.ArrayList partNames = new System.Collections.ArrayList
-        {
-            "Pump", "Compressor", "Pipeline", "Gasket", "Steam Trap", "Valve",
-            "Transformer", "Drive Train", "Motor", "Heat Tracing"
-        };
-        #endregion
-
-        private readonly BackgroundWorker writeToGoogleWorker = new BackgroundWorker();
         private readonly BackgroundWorker syncJobDataWorker = new BackgroundWorker();
+
+        private string OpenGoogleSpreadsheetButtonText;
 
         public MainWindow()
         {
@@ -94,10 +71,6 @@ namespace GoogleDocs_JobList
             this.showSetupWindow();
 
             this.OpenGoogleSpreadsheetButtonText = this.OpenGoogleSpreadsheet.Content.ToString();
-            this.writeToGoogleWorker.DoWork += worker_DoWork;
-            this.writeToGoogleWorker.RunWorkerCompleted += worker_RunWorkerCompleted;
-            this.writeToGoogleWorker.WorkerReportsProgress = true;
-            this.writeToGoogleWorker.ProgressChanged += worker_ProgressChanged;
 
             this.SynchronizeButtonText = this.SynchronizeStartButton.Content.ToString();
             this.syncJobDataWorker.WorkerReportsProgress = true;
@@ -147,17 +120,30 @@ namespace GoogleDocs_JobList
         {
             this.OpenGoogleSpreadsheet.Content = "Starting...";
             this.doGoogleAuth();
-            if (this.ws.Title.Text == "Sheet 1")
-            {
-                this.ws.Title.Text = "Data";
-                this.ws.Update();
-                writeToGoogleWorker.RunWorkerAsync();
+
+            GoogleSpreadsheetWriter googleWriter = new GoogleSpreadsheetWriter(this.access);
+            googleWriter.ProgressChanged += googleWriter_ProgressChanged;
+            googleWriter.WorkComplete += googleWriter_WorkComplete;
+            if (googleWriter.setup()) {
+                googleWriter.run();
             }
             else
             {
                 this.OpenGoogleSpreadsheet.Content = this.OpenGoogleSpreadsheetButtonText;
                 Process.Start(access.getSpreadsheetURL(this.appName));
             }
+        }
+
+        void googleWriter_WorkComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.OpenGoogleSpreadsheet.Content = this.OpenGoogleSpreadsheetButtonText;
+            Process.Start(access.getSpreadsheetURL(this.appName));
+        }
+
+        void googleWriter_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            int progress = e.ProgressPercentage;
+            this.OpenGoogleSpreadsheet.Content = "Populating Worksheet: " + progress + "%";
         }
 
         private void doGoogleAuth()
@@ -182,7 +168,7 @@ namespace GoogleDocs_JobList
                 this.clientSecret, this.accessToken
             );
 
-            this.ws = access.getDataWorksheet();
+            this.ws = this.access.getDataWorksheet();
         }
 
         #region AsyncWork Forn RPM Synchronization
@@ -369,60 +355,6 @@ namespace GoogleDocs_JobList
             }
             return null;
         }
-        #endregion
-
-        #region AsyncWork For Loading Data into Google Docs
-        private string OpenGoogleSpreadsheetButtonText;
-        void worker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            CellFeed cellFeed = access.service.Query(new CellQuery(ws.CellFeedLink));
-            cellFeed.Insert(new CellEntry(1, 1, "JobID"));
-            cellFeed.Insert(new CellEntry(1, 2, "Job Description"));
-            cellFeed.Insert(new CellEntry(1, 3, "Job Location"));
-
-            this.writeJobsToGoogleDocs(cellFeed);
-        }
-        void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            this.OpenGoogleSpreadsheet.Content = this.OpenGoogleSpreadsheetButtonText;
-            Process.Start(access.getSpreadsheetURL(this.appName));
-        }
-
-        void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            int progress = e.ProgressPercentage;
-            this.OpenGoogleSpreadsheet.Content = "Populating Worksheet: " + progress + "%";
-        }
-
-        private void writeJobsToGoogleDocs(CellFeed cellFeed)
-        {
-            Random rand = new Random();
-            List<String> names = Enumerable.ToList<String>(this.siteNames.Keys);
-            int nameCount = this.siteNames.Count;
-            for (int i = 0; i < 40; i++)
-            {
-                string randName = names[rand.Next(nameCount)];
-                int count = this.siteNames[randName];
-                this.writeJob(randName, count, (uint)i, cellFeed);
-                this.siteNames[randName] += 1;
-                this.writeToGoogleWorker.ReportProgress(i * 100 / 40);
-            }
-        }
-
-        private void writeJob(string siteName, int count, uint index, CellFeed cellFeed)
-        {
-            Random rand = new Random();
-            siteName += " " + new String('I', rand.Next(2) + 1);
-
-            string description = this.partNames[rand.Next(partNames.Count - 1)] + " " +
-                this.repairActivities[rand.Next(repairActivities.Count - 1)];
-
-            cellFeed.Insert(new CellEntry(index + 2, 1, "JOB" + index.ToString("0000#")));
-            cellFeed.Insert(new CellEntry(index + 2, 2, description));
-            cellFeed.Insert(new CellEntry(index + 2, 3, siteName));
-        }
-
-
         #endregion
     }
 }
