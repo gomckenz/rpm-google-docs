@@ -85,17 +85,25 @@ namespace GoogleDocs_JobList
         #endregion
 
         private readonly BackgroundWorker writeToGoogleWorker = new BackgroundWorker();
+        private readonly BackgroundWorker syncJobDataWorker = new BackgroundWorker();
 
         public MainWindow()
         {
             InitializeComponent();
             this.appName = (string)Settings.Default["ApplicationName"];
             this.showSetupWindow();
-            this.OpenSpreadsheetText = this.OpenGoogleSpreadsheet.Content.ToString();
+
+            this.OpenGoogleSpreadsheetButtonText = this.OpenGoogleSpreadsheet.Content.ToString();
             this.writeToGoogleWorker.DoWork += worker_DoWork;
             this.writeToGoogleWorker.RunWorkerCompleted += worker_RunWorkerCompleted;
             this.writeToGoogleWorker.WorkerReportsProgress = true;
             this.writeToGoogleWorker.ProgressChanged += worker_ProgressChanged;
+
+            this.SynchronizeButtonText = this.SynchronizeStartButton.Content.ToString();
+            this.syncJobDataWorker.WorkerReportsProgress = true;
+            this.syncJobDataWorker.DoWork += syncJobDataWorker_DoWork;
+            this.syncJobDataWorker.RunWorkerCompleted += syncJobDataWorker_RunWorkerCompleted;
+            this.syncJobDataWorker.ProgressChanged += syncJobDataWorker_ProgressChanged;
         }
 
         private void SaveSetupOption(object sender, AppSetupChangedEventArgs e)
@@ -147,7 +155,7 @@ namespace GoogleDocs_JobList
             }
             else
             {
-                this.OpenGoogleSpreadsheet.Content = this.OpenSpreadsheetText;
+                this.OpenGoogleSpreadsheet.Content = this.OpenGoogleSpreadsheetButtonText;
                 Process.Start(access.getSpreadsheetURL(this.appName));
             }
         }
@@ -177,12 +185,62 @@ namespace GoogleDocs_JobList
             this.ws = access.getDataWorksheet();
         }
 
-        private void SynchronizeStart_Click(object sender, RoutedEventArgs e)
+        #region AsyncWork Forn RPM Synchronization
+        private string SynchronizeButtonText;
+        void syncJobDataWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             ProcsResult procs = this.getAllProcs();
             ProcResult ilpProc = this.getProc("ILP-Incident Learning Process", procs);
             ProcResult externalJobs = this.getProc("External-JobInformation", procs);
             this.synchronizeJobInformation(externalJobs);
+        }
+
+        private void synchronizeJobInformation(ProcResult jobProc)
+        {
+            Dictionary<string, ProcForm> forms = this.byExternalJobID(jobProc.ProcessID, this.getListOfForms(jobProc.ProcessID));
+            Dictionary<string, Tuple<string, string>> googleData = this.getGoogleDocsJobs();
+
+            int jobCount = googleData.Count;
+            int current = 0;
+            foreach (string jobId in googleData.Keys)
+            {
+                string description = googleData[jobId].Item1;
+                string location = googleData[jobId].Item2;
+                if (forms.ContainsKey(jobId))
+                {
+                    ProcForm form = forms[jobId];
+                    if (form.valueForField("Job Description") != description || form.valueForField("Job Location") != location)
+                    {
+                        this.updateJobForm(forms[jobId], description, location);
+                    }
+                }
+                else
+                {
+                    this.createJobForm(jobProc.ProcessID, jobId, description, location);
+                }
+                current += 1;
+                this.syncJobDataWorker.ReportProgress(current * 100 / jobCount);
+            }
+        }
+
+        void syncJobDataWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.SynchronizeStartButton.Content = this.SynchronizeButtonText;
+            Process.Start(this.rpmApiUrl);
+        }
+
+        void syncJobDataWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            int progress = e.ProgressPercentage;
+            this.SynchronizeStartButton.Content = "Synchronizing RPM: " + progress + "%";
+        }
+        #endregion
+
+        private void SynchronizeStartButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.SynchronizeStartButton.Content = "Synchronizing RPM...";
+            this.doGoogleAuth();
+            this.syncJobDataWorker.RunWorkerAsync();
         }
 
         #region RPM API Interaction
@@ -198,30 +256,6 @@ namespace GoogleDocs_JobList
             RPMApi rpm = new RPMApi(this.rpmApiUrl, this.rpmApiKey);
             ProcsResult p = rpm.Procs();
             return p;
-        }
-
-        private void synchronizeJobInformation(ProcResult jobProc)
-        {
-            Dictionary<string, ProcForm> forms = this.byExternalJobID(jobProc.ProcessID, this.getListOfForms(jobProc.ProcessID));
-            Dictionary<string, Tuple<string, string>> googleData = this.getGoogleDocsJobs();
-
-            foreach (string jobId in googleData.Keys)
-            {
-                string description = googleData[jobId].Item1;
-                string location   = googleData[jobId].Item2;
-                if (forms.ContainsKey(jobId))
-                {
-                    ProcForm form = forms[jobId];
-                    if (form.valueForField("Job Description") != description || form.valueForField("Job Location") != location)
-                    {
-                        this.updateJobForm(forms[jobId], description, location);
-                    }
-                }
-                else
-                {
-                    this.createJobForm(jobProc.ProcessID, jobId, description, location);
-                }
-            }
         }
 
         private void updateJobForm(ProcForm procForm, string description, string location)
@@ -303,7 +337,6 @@ namespace GoogleDocs_JobList
         {
             Dictionary<string, Tuple<string, string>> jobs = new Dictionary<string, Tuple<string, string>>();
 
-            this.doGoogleAuth();
             this.ws = this.access.getDataWorksheet();
             AtomLink feedLink = this.ws.Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
             ListQuery listQuery = new ListQuery(feedLink.HRef.ToString());
@@ -325,8 +358,6 @@ namespace GoogleDocs_JobList
             return jobs;
         }
 
-        #endregion
-
         private ProcResult getProc(string procName , ProcsResult procs)
         {
             foreach (ProcResult proc in procs.Procs)
@@ -338,9 +369,10 @@ namespace GoogleDocs_JobList
             }
             return null;
         }
+        #endregion
 
         #region AsyncWork For Loading Data into Google Docs
-        private string OpenSpreadsheetText;
+        private string OpenGoogleSpreadsheetButtonText;
         void worker_DoWork(object sender, DoWorkEventArgs e)
         {
             CellFeed cellFeed = access.service.Query(new CellQuery(ws.CellFeedLink));
@@ -352,7 +384,7 @@ namespace GoogleDocs_JobList
         }
         void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            this.OpenGoogleSpreadsheet.Content = this.OpenSpreadsheetText;
+            this.OpenGoogleSpreadsheet.Content = this.OpenGoogleSpreadsheetButtonText;
             Process.Start(access.getSpreadsheetURL(this.appName));
         }
 
@@ -392,7 +424,5 @@ namespace GoogleDocs_JobList
 
 
         #endregion
-        
-        
     }
 }

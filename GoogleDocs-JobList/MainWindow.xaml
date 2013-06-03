@@ -49,8 +49,8 @@
         	Margin="8,10,0,10"
         	Foreground="Black" TextWrapping="Wrap" Padding="5,0,0,0" ><Run Background="White" FontSize="12.6666666666667" Text="Clicking this button will make this application update RPM's database of Jobs based on the current content of the Jobs Spreadsheet."/></TextBlock>
         <Border Grid.Column="1" Grid.Row="3" BorderThickness="0,0,0,1" BorderBrush="#FFE3E9EF">
-            <Button x:Name="SynchronizeStart" Content="Start"
-        	    Click="SynchronizeStart_Click"
+            <Button x:Name="SynchronizeStartButton" Content="Start"
+        	    Click="SynchronizeStartButton_Click"
         	    HorizontalAlignment="Stretch" Margin="10,10,10,0" VerticalAlignment="Top"
         	    Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
         	    BorderThickness="1" Background="#FFFBFBFB" BorderBrush="#FFE3E9EF" FontSize="16" Height="27" />
