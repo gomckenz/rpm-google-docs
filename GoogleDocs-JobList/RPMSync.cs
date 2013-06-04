@@ -37,6 +37,7 @@ namespace GoogleDocs_JobList.AsyncWork
         }
 
         private InfoResult info;
+        private ProcResult jobProcess;
 
         public RPMSync(string apiUrl, string apiKey, Dictionary<string, Tuple<string, string>> googleData)
         {
@@ -64,11 +65,12 @@ namespace GoogleDocs_JobList.AsyncWork
             ProcsResult procs = this.getAllProcs();
             ProcResult ilpProc = this.getProc("ILP-Incident Learning Process", procs);
             ProcResult externalJobs = this.getProc("External-JobInformation", procs);
+            this.jobProcess = externalJobs;
             this.synchronizeJobInformation(externalJobs);
         }
         private void syncingComplete(object sender, RunWorkerCompletedEventArgs e)
         {
-            this.WorkComplete(sender, e);
+            this.WorkComplete(this, e);
         }
         private void syncingProgressChanged(object sender, ProgressChangedEventArgs e)
         {
@@ -216,6 +218,11 @@ namespace GoogleDocs_JobList.AsyncWork
         public bool infoSuccessful()
         {
             return this.info.User != "";
+        }
+
+        public int getJobProcessID()
+        {
+            return this.jobProcess.ProcessID;
         }
 
     }

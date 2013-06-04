@@ -1,11 +1,11 @@
 ﻿<Window x:Class="GoogleDocs_JobList.SetupWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="SetupWindow" MinHeight="600" Height="600" MinWidth="800" Width="800" >
+        Title="Setup" MinHeight="600" Height="600" Width="700" MaxWidth="700" MinWidth="700" >
     <Grid Margin="20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="57" />
-            <RowDefinition Height="420"/>
+            <RowDefinition Height="47" />
+            <RowDefinition Height="430*"/>
             <RowDefinition Height="10" />
             <RowDefinition Height="40" />
         </Grid.RowDefinitions>
@@ -22,7 +22,7 @@
                 <RowDefinition Height="10"/>
                 <RowDefinition Height="45"/>
                 <RowDefinition Height="10"/>
-                <RowDefinition Height="60*"/>
+                <RowDefinition Height="80*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="120"/>
@@ -54,7 +54,7 @@
                    VerticalAlignment="Top" HorizontalAlignment="Left" 
                    FontSize="15" Foreground="#FF2C7A00" Visibility="Hidden"
                    Content="Authorized!"></Label>
-            <TextBlock Grid.Column="1" Margin="20" Grid.Row="4" TextWrapping="Wrap" FontSize="15" VerticalAlignment="Top"><Run Text="You are authorizing this application to access Google Spreadsheets for the purpose of this Demo."/><LineBreak/><Run/><LineBreak/><Run Text="It will create a Spreadsheet to be used as a database of jobs."/><LineBreak/><Run/><LineBreak/><Run Text="The jobs stored in it will be then pulled into RPM where an Incident Tracking will associate those job information and stay in sync."/></TextBlock>
+            <TextBlock Grid.Column="1" Margin="20" Grid.Row="4" TextWrapping="Wrap" FontSize="15" VerticalAlignment="Top" MaxWidth="600"><Run Text="You are authorizing this application to access Google Spreadsheets for the purpose of this Demo."/><LineBreak/><Run/><LineBreak/><Run Text="It will create a Spreadsheet to be used as a database of jobs."/><LineBreak/><Run/><LineBreak/><Run Text="The jobs stored in it will be then pulled into RPM where an Incident Tracking will associate those job information and stay in sync."/></TextBlock>
         </Grid>
 
         

@@ -165,7 +165,7 @@
         XTesb3QPLh88M+QwdP6m681Lt7xuXbu94vbgcOjwnZHokdE77DtTd1PuvriXeW/h/sYH6AdFD6UeVjxS
         fNTws+7PbaOWo6fHXMf6Hwc/vj/OGn/2S8Yv7ycKnpCfVEyqTDZPmU2dmnafvvF05dOJZ+nPFmYKf5X+
         tfa5zvMffnP8rX82YnbiBf/Fp99LXsq/PPRq2aueuYC5R69TXy/MF72Rf3P4LeNt37vwd5MLWe+x7ys/
-        6H7o/ujz8cGn1E+f/gUDmPP8usTo0wAAAAlwSFlzAAALEgAACxIB0t1+/AAAEmdJREFUeF7tnT/IXVUW
+        6H7o/ujz8cGn1E+f/gUDmPP8usTo0wAAAAlwSFlzAAALDgAACw4BQL7hQQAAEmdJREFUeF7tnT/IXVUW
         xcVCLMQiTCEWwUIsZAqxkCkkhVgMFsFCLMJUKcRCphALsRhIIRaDxWARLGQKsbIIFsFCLIYUwUIsrMRC
         LMQiWIhFSDFk9jJ+uGe73ve9d+855+593vrBD2Fj7rvnz0revee8e++7e/eulHJjaVFKOVZalFKOlRal
         lGOlRSnlWGlRSjlWWpRSjpUWpZRjpUUp5VhpMSqa8br5ZSFxvqIBLFdeWoyKZtww0aFVvGmKBrBceWkx
@@ -246,5 +246,9 @@
         YlQ0o9p2t5umaADLlZcWo6IZr5t41GAVcb6iASxXXlqUUo6VFqWUY6VFKeVYaVFKOVZalFKOlRallGOl
         RSnlWGlRSjlWWpRSjvTuff8DvpctIjVk6CYAAAAASUVORK5CYII=
 </value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="sync" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\sync.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

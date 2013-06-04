@@ -66,6 +66,7 @@ namespace GoogleDocs_JobList
 
         private void SetupButton_Click(object sender, RoutedEventArgs e)
         {
+            Keyboard.Focus(this.FocusControl);
             this.showSetupWindow(true);
         }
 
@@ -111,6 +112,7 @@ namespace GoogleDocs_JobList
         {
             this.OpenGoogleSpreadsheet.Content = this.OpenGoogleSpreadsheetButtonText;
             Process.Start(access.getSpreadsheetURL(this.appName));
+            Keyboard.Focus(this.FocusControl);
         }
 
         void googleWriter_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -156,7 +158,9 @@ namespace GoogleDocs_JobList
         void sync_WorkComplete(object sender, RunWorkerCompletedEventArgs e)
         {
             this.SynchronizeStartButton.Content = this.SynchronizeButtonText;
-            Process.Start(this.rpmApiUrl);
+            RPMSync sync = (RPMSync)sender;
+            Process.Start(this.rpmApiUrl + "/?Page=SelectProjectByTemplate.aspx&Item=t" + sync.getJobProcessID() + "*");
+            Keyboard.Focus(this.FocusControl);
         }
 
         void sync_ProgressChanged(object sender, ProgressChangedEventArgs e)
