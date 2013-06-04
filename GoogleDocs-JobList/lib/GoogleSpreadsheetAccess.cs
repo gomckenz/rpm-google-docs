@@ -74,12 +74,36 @@ namespace GoogleDocs_JobList
 
             DocumentsListQuery docQuery = new DocumentsListQuery();
             docQuery.Title = sheetName;
-            //docQuery.TitleExact = true;
 
             DocumentsFeed feed = docService.Query(docQuery);
             DocumentEntry entry = (DocumentEntry)feed.Entries[0];
 
             return "https://docs.google.com/spreadsheet/ccc?key=" + entry.ResourceId.Replace("spreadsheet:", "");
+        }
+
+        public Dictionary<string, Tuple<string, string>> getGoogleDocsJobs()
+        {
+            Dictionary<string, Tuple<string, string>> jobs = new Dictionary<string, Tuple<string, string>>();
+
+            WorksheetEntry ws = this.getDataWorksheet();
+            AtomLink feedLink = ws.Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
+            ListQuery listQuery = new ListQuery(feedLink.HRef.ToString());
+            ListFeed feed = this.service.Query(listQuery);
+
+            foreach (ListEntry row in feed.Entries)
+            {
+                string key = null;
+                string col1 = null;
+                string col2 = null;
+                foreach (ListEntry.Custom element in row.Elements)
+                {
+                    if (key == null) key = element.Value;
+                    else if (col1 == null) col1 = element.Value;
+                    else if (col2 == null) col2 = element.Value;
+                }
+                jobs.Add(key, new Tuple<string, string>(col1, col2));
+            }
+            return jobs;
         }
     }
 }

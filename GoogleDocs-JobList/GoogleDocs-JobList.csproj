@@ -120,6 +120,7 @@
     <Compile Include="Properties\GoogleOAuthSettings.cs" />
     <Compile Include="lib\GoogleSpreadsheetAccess.cs" />
     <Compile Include="lib\RPM\RPMApi.cs" />
+    <Compile Include="RPMSync.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Setup.xaml.cs">
       <DependentUpon>Setup.xaml</DependentUpon>
