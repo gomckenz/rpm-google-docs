@@ -48,6 +48,11 @@ namespace GoogleDocs_JobList
             this.rpmApiKey = rpmApiKey;
             this.clientId = clientId;
             this.clientSecret = clientSecret;
+            if (this.googleOAuthKey != "")
+            {
+                this.AuthorizedLabel.Visibility = System.Windows.Visibility.Visible;
+                this.GoogleAuthorizeButton.Content = "Deauthorize";
+            }
         }
 
         public virtual void OnSetupOptionChanged(AppSetupChangedEventArgs e)
@@ -60,11 +65,40 @@ namespace GoogleDocs_JobList
 
         private void GoogleAuthorizeButton_Click(object sender, RoutedEventArgs e)
         {
-            this.DoneButton.Content = "Cancel";
-            this.showBrowser();
+            if (this.googleOAuthKey == "")
+            {
+                this.DoneButton.Content = "Cancel";
+                this.showBrowser();
+
+                string urlForOauth = GoogleOauthAccess.getAuthorizationURL(this.clientId, this.clientSecret);
+                this.Browser.Navigate(urlForOauth);
+            }
+            else
+            {
+                this.triggerOauthUpdate("");
+            }
             
-            string urlForOauth = GoogleOauthAccess.getAuthorizationURL(this.clientId, this.clientSecret);
-            this.Browser.Navigate(urlForOauth);
+        }
+
+        private void triggerOauthUpdate(string newCode)
+        {
+            if (this.googleOAuthKey != newCode)
+            {
+                this.OnSetupOptionChanged(
+                    new AppSetupChangedEventArgs("GoogleOauthKey", newCode)
+                );
+            }
+            this.googleOAuthKey = newCode;
+            if (newCode == "")
+            {
+                this.GoogleAuthorizeButton.Content = "Authorize";
+                this.AuthorizedLabel.Visibility = System.Windows.Visibility.Hidden;
+            }
+            else
+            {
+                this.GoogleAuthorizeButton.Content = "Deauthorize";
+                this.AuthorizedLabel.Visibility = System.Windows.Visibility.Visible;
+            }
         }
 
         private void Browser_Navigated(object sender, System.Windows.Navigation.NavigationEventArgs e)
@@ -76,9 +110,7 @@ namespace GoogleDocs_JobList
             if (title.Contains("Success"))
             {
                 string successCode = title.Substring(title.IndexOf("=") + 1);
-                this.OnSetupOptionChanged(
-                    new AppSetupChangedEventArgs("GoogleOauthKey", successCode)
-                );
+                this.triggerOauthUpdate(successCode);
                 this.hideBrowser();
             }
         }
@@ -95,6 +127,7 @@ namespace GoogleDocs_JobList
             this.hideShowGrid(this.GoogleAuthGrid, hideAnimation);
             this.hideShowGrid(this.SetupOptionsGrid, showAnimation);
             this.GoogleAuthGrid.Visibility = System.Windows.Visibility.Hidden;
+            this.DoneButton.Content = "Done";
         }
 
         private void hideShowGrid(Grid g, DoubleAnimation animation)

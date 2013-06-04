@@ -47,8 +47,13 @@
                     FontSize="16" Foreground="White" Padding="10,18,10,0" Background="#FF0C142E"
                     Margin="0" UseLayoutRounding="True"/>
             <Border Grid.Row="5" Grid.Column="1" Background="#FFF3F3F3" BorderBrush="#FF595959" BorderThickness="1,0,0,0" >
-                <Button x:Name="GoogleAuthorizeButton" Content="Authorize" Grid.Column="1" HorizontalAlignment="Left" Margin="20,180,20,20" Grid.Row="5" VerticalAlignment="Top" BorderThickness="1" Background="#FFFBFBFB" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" BorderBrush="#FF0C142E" FontSize="16" Click="GoogleAuthorizeButton_Click" Height="34" Width="120" />
+                <Button x:Name="GoogleAuthorizeButton" Content="Authorize" Grid.Column="1" HorizontalAlignment="Left" Margin="20,180,20,20" Grid.Row="5" VerticalAlignment="Top" BorderThickness="1" Background="#FFFBFBFB" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" BorderBrush="#FF0C142E" FontSize="16" Click="GoogleAuthorizeButton_Click" Width="120" />
             </Border>
+            <Label x:Name="AuthorizedLabel" 
+                   Grid.Column="1" Grid.Row="4" Margin="144,179,0,0" 
+                   VerticalAlignment="Top" HorizontalAlignment="Left" 
+                   FontSize="15" Foreground="#FF2C7A00" Visibility="Hidden"
+                   Content="Authorized!"></Label>
             <TextBlock Grid.Column="1" Margin="20" Grid.Row="4" TextWrapping="Wrap" FontSize="15" VerticalAlignment="Top"><Run Text="You are authorizing this application to access Google Spreadsheets for the purpose of this Demo."/><LineBreak/><Run/><LineBreak/><Run Text="It will create a Spreadsheet to be used as a database of jobs."/><LineBreak/><Run/><LineBreak/><Run Text="The jobs stored in it will be then pulled into RPM where an Incident Tracking will associate those job information and stay in sync."/></TextBlock>
         </Grid>
 
@@ -60,10 +65,9 @@
         </Grid>
 
 
-        <Border BorderBrush="#FFE3E9EF" BorderThickness="0,1,0,0" Margin="10,0,0,0" Grid.Row="3" Grid.Column="1">
+        <Border BorderBrush="#FFE3E9EF" BorderThickness="0,1,0,0" Margin="0" Grid.Row="3" Grid.Column="1">
             <Button x:Name="DoneButton" Content="Done" HorizontalAlignment="Right" VerticalAlignment="Center" BorderThickness="1" Background="#FFFBFBFB" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" BorderBrush="#FF0C142E" FontSize="16" Width="65" Click="DoneButton_Click" />
         </Border>
-        <Calendar HorizontalAlignment="Left" Height="100" Margin="-46,98,0,-138" Grid.Row="2" VerticalAlignment="Top"/>
         <Control x:Name="FocusControl" Focusable="true" IsTabStop="false" />
     </Grid>
 </Window>
