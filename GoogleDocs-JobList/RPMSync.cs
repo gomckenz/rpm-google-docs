@@ -14,8 +14,10 @@ namespace GoogleDocs_JobList.AsyncWork
     {
         public event ProgressChangedEventHandler ProgressChanged;
         public event RunWorkerCompletedEventHandler WorkComplete;
+        public event RunWorkerCompletedEventHandler AccessCheckComplete;
 
         private readonly BackgroundWorker syncDataWorker = new BackgroundWorker();
+        private readonly BackgroundWorker rpmInfoCheckWorker = new BackgroundWorker();
 
         private Dictionary<string, Tuple<string, string>> googleData;
 
@@ -34,6 +36,8 @@ namespace GoogleDocs_JobList.AsyncWork
             }
         }
 
+        private InfoResult info;
+
         public RPMSync(string apiUrl, string apiKey, Dictionary<string, Tuple<string, string>> googleData)
         {
             this.rpmApiUrl = apiUrl;
@@ -44,6 +48,9 @@ namespace GoogleDocs_JobList.AsyncWork
             this.syncDataWorker.DoWork += syncData;
             this.syncDataWorker.RunWorkerCompleted += syncingComplete;
             this.syncDataWorker.ProgressChanged += syncingProgressChanged;
+
+            this.rpmInfoCheckWorker.DoWork += async_checkRPMAccess;
+            this.rpmInfoCheckWorker.RunWorkerCompleted += async_checkRPMAccessCompleted;
         }
 
         public void run()
@@ -190,5 +197,26 @@ namespace GoogleDocs_JobList.AsyncWork
             }
             return forms;
         }
+
+        public void checkRPMAccess()
+        {
+            this.rpmInfoCheckWorker.RunWorkerAsync();
+        }
+
+        void async_checkRPMAccessCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.AccessCheckComplete(this, e);
+        }
+
+        void async_checkRPMAccess(object sender, DoWorkEventArgs e)
+        {
+            this.info = this.API.info();
+        }
+
+        public bool infoSuccessful()
+        {
+            return this.info.User != "";
+        }
+
     }
 }

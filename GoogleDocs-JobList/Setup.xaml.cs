@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Media.Animation;
 
+using GoogleDocs_JobList.AsyncWork;
+
 namespace GoogleDocs_JobList
 {
 
@@ -36,6 +38,8 @@ namespace GoogleDocs_JobList
         private string clientId;
         private string clientSecret;
 
+        private bool rpmAccessWorked;
+
         public SetupWindow(string googleOAuthKey, string rpmApiUrl, string rpmApiKey, string clientId, string clientSecret)
         {
             InitializeComponent();
@@ -56,6 +60,7 @@ namespace GoogleDocs_JobList
 
         private void GoogleAuthorizeButton_Click(object sender, RoutedEventArgs e)
         {
+            this.DoneButton.Content = "Cancel";
             this.showBrowser();
             
             string urlForOauth = GoogleOauthAccess.getAuthorizationURL(this.clientId, this.clientSecret);
@@ -109,12 +114,56 @@ namespace GoogleDocs_JobList
         {
             TextBox t = (TextBox)sender;
             t.Text = this.rpmApiUrl;
+            this.rpmAccessWorked = false;
         }
 
         private void RpmApiKey_Loaded(object sender, RoutedEventArgs e)
         {
             TextBox t = (TextBox)sender;
             t.Text = this.rpmApiKey;
+            this.rpmAccessWorked = false;
+        }
+
+        private void checkRPMAccess()
+        {
+            if (this.rpmApiKey != "" && this.rpmApiUrl != "")
+            {
+                RPMSync rpmAccess = new RPMSync(this.rpmApiUrl, this.rpmApiKey, null);
+                rpmAccess.AccessCheckComplete += rpmAccess_AccessCheckComplete;
+                rpmAccess.checkRPMAccess();
+            }
+        }
+
+        void rpmAccess_AccessCheckComplete(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+        {
+            this.rpmAccessWorked = ((RPMSync)sender).infoSuccessful();
+            if (this.rpmAccessWorked)
+            {
+                this.Close();
+            }
+            else
+            {
+                this.showRPMAccessError();
+            }
+        }
+
+        private void showRPMAccessError()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void DoneButton_Click(object sender, RoutedEventArgs e)
+        {
+            Keyboard.Focus(this.FocusControl);
+            if (this.DoneButton.Content.ToString() == "Cancel")
+            {
+                this.DoneButton.Content = "Done";
+                this.hideBrowser();
+            }
+            else
+            {
+                this.checkRPMAccess();
+            }
         }
     }
 }
