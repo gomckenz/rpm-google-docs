@@ -111,6 +111,7 @@
     </ApplicationDefinition>
     <Compile Include="AppSetupChangedEventArgs.cs" />
     <Compile Include="AsyncWork\GoogleSpreadsheetWriter.cs" />
+    <Compile Include="GoogleOauthAccess.cs" />
     <Compile Include="lib\RPM\ApiResults\InfoResult.cs" />
     <Compile Include="lib\RPM\ApiResults\ProcForm.cs" />
     <Compile Include="lib\RPM\ApiResults\ProcFormField.cs" />
@@ -137,7 +138,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OAuth2Demo.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -216,6 +216,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\External-JobInformation.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
