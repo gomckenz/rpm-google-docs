@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<rpm:Process xmlns:rpm="urn:rpmsoftware.com:Process">
+  <name>External-JobInformation</name>
+  <date>Jun 5,2013</date>
+  <titleNumber>true</titleNumber>
+  <number>
+    <minumum>4</minumum>
+  </number>
+  <repeating>
+    <enabled>false</enabled>
+    <addlink>Add repeating fields</addlink>
+  </repeating>
+  <displayplural>True</displayplural>
+  <agentautoaddagentparticipants>false</agentautoaddagentparticipants>
+  <permissions>
+    <addParticipantChangeOwner>Edit</addParticipantChangeOwner>
+    <editTrashNotes>Edit</editTrashNotes>
+    <addDeleteRepeatingFields>Start</addDeleteRepeatingFields>
+  </permissions>
+  <fields>
+    <field name="JobId">
+      <type>Text</type>
+      <repeating>false</repeating>
+    </field>
+    <field name="Job Description">
+      <type>TextArea</type>
+      <repeating>false</repeating>
+    </field>
+    <field name="Job Location">
+      <type>Text</type>
+      <repeating>false</repeating>
+    </field>
+    <field name="deleted">
+      <type>YesNo</type>
+      <repeating>false</repeating>
+    </field>
+  </fields>
+  <statusLevels>
+    <statusLevel>
+      <name>New</name>
+      <autoarchive>false</autoarchive>
+      <userselectable>true</userselectable>
+      <includeInSum>true</includeInSum>
+      <allowAttachmentAddEdit>true</allowAttachmentAddEdit>
+      <allowEditForm>true</allowEditForm>
+    </statusLevel>
+  </statusLevels>
+  <statusTriggers />
+  <defaultColumns>
+    <staff>
+      <column>Number</column>
+      <column>Owner</column>
+      <column>Action due for me</column>
+      <column>Started</column>
+      <column>Started by</column>
+      <column>Modified</column>
+      <column>Modified by</column>
+      <column>Files</column>
+    </staff>
+    <agent>
+      <column>Number</column>
+      <column>Owner</column>
+      <column>Action due for me</column>
+      <column>Started</column>
+      <column>Started by</column>
+      <column>Modified</column>
+      <column>Modified by</column>
+    </agent>
+    <customer>
+      <column>Number</column>
+      <column>Owner</column>
+      <column>Action due for me</column>
+      <column>Started</column>
+      <column>Started by</column>
+      <column>Modified</column>
+      <column>Modified by</column>
+    </customer>
+  </defaultColumns>
+  <customWebBoxes />
+  <holders />
+</rpm:Process>

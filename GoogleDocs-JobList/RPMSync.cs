@@ -63,7 +63,6 @@ namespace GoogleDocs_JobList.AsyncWork
         private void syncData(object sender, DoWorkEventArgs e)
         {
             ProcsResult procs = this.getAllProcs();
-            ProcResult ilpProc = this.getProc("ILP-Incident Learning Process", procs);
             ProcResult externalJobs = this.getProc("External-JobInformation", procs);
             this.jobProcess = externalJobs;
             this.synchronizeJobInformation(externalJobs);
@@ -100,8 +99,6 @@ namespace GoogleDocs_JobList.AsyncWork
         private void synchronizeJobInformation(ProcResult jobProc)
         {
             Dictionary<string, ProcForm> forms = this.byExternalJobID(jobProc.ProcessID, this.getListOfForms(jobProc.ProcessID));
-            //Dictionary<string, Tuple<string, string>> googleData = this.getGoogleDocsJobs();
-
             int jobCount = googleData.Count;
             int current = 0;
             foreach (string jobId in googleData.Keys)
@@ -121,7 +118,13 @@ namespace GoogleDocs_JobList.AsyncWork
                     this.createJobForm(jobProc.ProcessID, jobId, description, location);
                 }
                 current += 1;
+                forms.Remove(jobId);
                 this.syncDataWorker.ReportProgress(current * 100 / jobCount);
+            }
+            foreach (string deletedJobId in forms.Keys)
+            {
+                ProcForm form = forms[deletedJobId];
+                this.updateJobForm(form, form.valueForField("Job Description"), form.valueForField("Job Location"), true);
             }
         }
 
@@ -136,37 +139,29 @@ namespace GoogleDocs_JobList.AsyncWork
             return converted;
         }
 
-        private void updateJobForm(ProcForm procForm, string description, string location)
+        private void updateJobForm(ProcForm procForm, string description, string location, bool deleted = false)
         {
-            dynamic jobData = new ExpandoObject();
-            jobData.FormID = procForm.FormID;
-            List<object> fields = new List<object>
+            object jobData = new
             {
-                new
-                {
-                    Field = "Job Description",
-                    Value = description
-                },
-                new
-                {
-                    Field = "Job Location",
-                    Value = location
-                }
+                FormID = procForm.FormID,
+                Fields = this.prepareJobData(description, location, deleted: deleted)
             };
-            jobData.Fields = fields;
             this.API.ProcFormEdit(formData: jobData);
         }
 
         private void createJobForm(int processID, string jobId, string description, string location)
         {
-            dynamic jobData = new ExpandoObject();
-            List<object> fields = new List<object>
+            object jobData = new
             {
-                new
-                {
-                    Field = "JobId",
-                    Value = jobId
-                },
+                Fields = this.prepareJobData(description, location, jobId)
+            };
+            ProcFormData form = this.API.ProcFormAdd(processID, jobData);
+        }
+
+        private List<object> prepareJobData(string description, string location, string jobId ="", bool deleted = false)
+        {
+            List<object> data = new List<object>
+            {
                 new
                 {
                     Field = "Job Description",
@@ -176,10 +171,21 @@ namespace GoogleDocs_JobList.AsyncWork
                 {
                     Field = "Job Location",
                     Value = location
+                },
+                new
+                {
+                    Field = "deleted",
+                    Value = deleted ? "Yes" : "No"
                 }
             };
-            jobData.Fields = fields;
-            ProcFormData form = this.API.ProcFormAdd(processID, jobData);
+            if (jobId != "")
+            {
+                data.Add(new{
+                    Field = "JobId",
+                    Value = jobId
+                });
+            }
+            return data;
         }
 
         private List<ProcForm> getListOfForms(int ProcessID)

@@ -61,6 +61,30 @@ namespace GoogleDocs_JobList.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot;?&gt;
+        ///&lt;rpm:Process xmlns:rpm=&quot;urn:rpmsoftware.com:Process&quot;&gt;
+        ///  &lt;name&gt;External-JobInformation&lt;/name&gt;
+        ///  &lt;date&gt;Jun 5,2013&lt;/date&gt;
+        ///  &lt;titleNumber&gt;true&lt;/titleNumber&gt;
+        ///  &lt;number&gt;
+        ///    &lt;minumum&gt;4&lt;/minumum&gt;
+        ///  &lt;/number&gt;
+        ///  &lt;repeating&gt;
+        ///    &lt;enabled&gt;false&lt;/enabled&gt;
+        ///    &lt;addlink&gt;Add repeating fields&lt;/addlink&gt;
+        ///  &lt;/repeating&gt;
+        ///  &lt;displayplural&gt;True&lt;/displayplural&gt;
+        ///  &lt;agentautoaddagentparticipants&gt;false&lt;/agentautoaddagentparticipants&gt;
+        ///  &lt;permissions&gt;
+        ///    &lt;addParticipantChangeOwner&gt;Edit&lt;/addPartici [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string External_JobInformation {
+            get {
+                return ResourceManager.GetString("External_JobInformation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap setting_icon {
