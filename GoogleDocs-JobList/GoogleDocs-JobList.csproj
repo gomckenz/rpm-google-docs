@@ -111,7 +111,11 @@
     </ApplicationDefinition>
     <Compile Include="AppSetupChangedEventArgs.cs" />
     <Compile Include="AsyncWork\GoogleSpreadsheetWriter.cs" />
+    <Compile Include="DataListing.xaml.cs">
+      <DependentUpon>DataListing.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GoogleOauthAccess.cs" />
+    <Compile Include="JobInfo.cs" />
     <Compile Include="lib\RPM\ApiResults\InfoResult.cs" />
     <Compile Include="lib\RPM\ApiResults\ProcForm.cs" />
     <Compile Include="lib\RPM\ApiResults\ProcFormField.cs" />
@@ -130,6 +134,10 @@
       <DependentUpon>Setup.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="DataListing.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

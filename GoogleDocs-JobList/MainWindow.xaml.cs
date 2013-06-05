@@ -138,10 +138,10 @@ namespace GoogleDocs_JobList
                 this.saveSetting("OAuthAccessToken", this.accessToken);
             }
 
-            this.access = new GoogleSpreadsheetAccess(
-                this.appName, this.clientId,
-                this.clientSecret, this.accessToken
-            );
+            //this.access = new GoogleSpreadsheetAccess(
+            //    this.appName, this.clientId,
+            //    this.clientSecret, this.accessToken
+            //);
         }
 
         private void SynchronizeStartButton_Click(object sender, RoutedEventArgs e)
@@ -149,10 +149,10 @@ namespace GoogleDocs_JobList
             this.SynchronizeStartButton.Content = "Synchronizing RPM...";
             this.doGoogleAuth();
 
-            RPMSync sync = new RPMSync(this.rpmApiUrl, this.rpmApiKey, this.access.getGoogleDocsJobs());
-            sync.ProgressChanged += sync_ProgressChanged;
-            sync.WorkComplete += sync_WorkComplete;
-            sync.run();
+            //RPMSync sync = new RPMSync(this.rpmApiUrl, this.rpmApiKey, this.access.getGoogleDocsJobs());
+            //sync.ProgressChanged += sync_ProgressChanged;
+            //sync.WorkComplete += sync_WorkComplete;
+            //sync.run();
         }
 
         void sync_WorkComplete(object sender, RunWorkerCompletedEventArgs e)
