@@ -161,7 +161,7 @@ namespace GoogleDocs_JobList
         {
             if (this.rpmApiKey != "" && this.rpmApiUrl != "")
             {
-                RPMSync rpmAccess = new RPMSync(this.rpmApiUrl, this.rpmApiKey, null);
+                RPMSync rpmAccess = new RPMSync(this.rpmApiUrl, this.rpmApiKey);
                 rpmAccess.AccessCheckComplete += rpmAccess_AccessCheckComplete;
                 rpmAccess.checkRPMAccess();
             }

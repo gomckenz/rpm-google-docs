@@ -12,14 +12,14 @@ namespace GoogleDocs_JobList.AsyncWork
 {
     class RPMSync
     {
-        public event ProgressChangedEventHandler ProgressChanged;
         public event RunWorkerCompletedEventHandler WorkComplete;
         public event RunWorkerCompletedEventHandler AccessCheckComplete;
+        public event ProgressChangedEventHandler ProgressChanged;
 
         private readonly BackgroundWorker syncDataWorker = new BackgroundWorker();
         private readonly BackgroundWorker rpmInfoCheckWorker = new BackgroundWorker();
 
-        private Dictionary<string, Tuple<string, string>> googleData;
+        private Dictionary<string, JobInfo> googleData;
 
         private string rpmApiUrl;
         private string rpmApiKey;
@@ -39,11 +39,10 @@ namespace GoogleDocs_JobList.AsyncWork
         private InfoResult info;
         private ProcResult jobProcess;
 
-        public RPMSync(string apiUrl, string apiKey, Dictionary<string, Tuple<string, string>> googleData)
+        public RPMSync(string apiUrl, string apiKey)
         {
             this.rpmApiUrl = apiUrl;
             this.rpmApiKey = apiKey;
-            this.googleData = googleData;
 
             this.syncDataWorker.WorkerReportsProgress = true;
             this.syncDataWorker.DoWork += syncData;
@@ -52,20 +51,21 @@ namespace GoogleDocs_JobList.AsyncWork
 
             this.rpmInfoCheckWorker.DoWork += async_checkRPMAccess;
             this.rpmInfoCheckWorker.RunWorkerCompleted += async_checkRPMAccessCompleted;
+
+            ProcsResult procs = this.getAllProcs();
+            this.jobProcess = this.getProc("External-JobInformation", procs);
         }
 
-        public void run()
+        public void run(Dictionary<string, JobInfo> newData)
         {
+            this.googleData = newData;
             this.syncDataWorker.RunWorkerAsync();
         }
 
         #region Async Events
         private void syncData(object sender, DoWorkEventArgs e)
         {
-            ProcsResult procs = this.getAllProcs();
-            ProcResult externalJobs = this.getProc("External-JobInformation", procs);
-            this.jobProcess = externalJobs;
-            this.synchronizeJobInformation(externalJobs);
+            this.synchronizeJobInformation(this.jobProcess);
         }
         private void syncingComplete(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -103,8 +103,8 @@ namespace GoogleDocs_JobList.AsyncWork
             int current = 0;
             foreach (string jobId in googleData.Keys)
             {
-                string description = googleData[jobId].Item1;
-                string location = googleData[jobId].Item2;
+                string description = googleData[jobId].Description;
+                string location = googleData[jobId].Location;
                 if (forms.ContainsKey(jobId))
                 {
                     ProcForm form = forms[jobId];
@@ -230,6 +230,5 @@ namespace GoogleDocs_JobList.AsyncWork
         {
             return this.jobProcess.ProcessID;
         }
-
     }
 }
