@@ -36,9 +36,9 @@ namespace GoogleDocs_JobList
         private string googleAppName = GoogleOAuthSettings.ApplicationName;
         private string googleClientId = GoogleOAuthSettings.OAuthClientId;
         private string googleClientSecret = GoogleOAuthSettings.OAuthClientSecret;
-        private string googleAccessToken;
-        private string googleOAuthKey;
-        private string googleRefreshToken;
+        private string OAuthAccessCode;
+        private string OAuthAccessToken;
+        private string OAuthRefreshToken;
 
         public Dictionary<string, JobInfo> Jobs
         {
@@ -58,58 +58,48 @@ namespace GoogleDocs_JobList
 
         public void setup()
         {
+            this.setupGoogleAccess();
             if (this.settingsAreComplete())
             {
                 this.sync = new RPMSync(this.RpmApiUrl, this.rpmApiKey);
                 this.sync.WorkComplete += sync_WorkComplete;
                 this.sync.ProgressChanged += sync_ProgressChanged;
             }
-            this.setupGoogleAccess();
         }
 
         private void setupGoogleAccess()
         {
-            if (this.googleOAuthKey != "")
+            this.loadSettings();
+            if (this.OAuthAccessCode != "")
             {
-                this.googleAccess = new GoogleSpreadsheetAccess(this.googleAppName, this.googleClientId, this.googleClientSecret, this.googleAccessToken, this.googleRefreshToken);
-                this.googleAccess.AccessTokenChanged += googleAccess_AccessTokenChanged;
-                this.googleAccess.RefreshTokenChanged += googleAccess_RefreshTokenChanged;
-                this.googleAccess.ConnectionComplete += googleAccess_ConnectionComplete;
+                this.googleAccess = new GoogleSpreadsheetAccess(
+                    this.googleAppName,
+                    this.googleClientId,
+                    this.googleClientSecret,
+                    this.OAuthAccessCode,
+                    this.OAuthAccessToken,
+                    this.OAuthRefreshToken
+                );
                 this.googleAccess.JobInfoReceived += googleAccess_JobInfoReceived;
+                string outAccessToken;
+                string outRefreshToken;
+                this.googleAccess.connect(out outAccessToken, out outRefreshToken);
+
+                this.saveSetting("OAuthAccessToken", outAccessToken);
+                this.saveSetting("OAuthRefreshToken", outRefreshToken);
+                this.googleConnectionComplete = true;
             }
         }
 
         public void getJobsListAsync()
         {
-            if (!this.googleConnectionComplete)
-            {
-                this.googleAccess.ConnectionComplete -= googleAccess_ConnectionComplete;
-                this.googleAccess.ConnectionComplete += googleAccess_ConnectionCompleteDownload;
-                this.googleAccess.connect();
-            }
-            else
-            {
-                this.googleAccess.getGoogleDocsJobsAsync();
-            }
+            this.googleAccess.getGoogleDocsJobsAsync();
         }
 
         private void googleAccess_JobInfoReceived(object sender, Dictionary<string, JobInfo> e)
         {
             this.Jobs = e;
             this.JobInfoReceived(this, this.Jobs);
-        }
-        // Automatically Download the Jobs Data after connection
-        private void googleAccess_ConnectionCompleteDownload(object sender, EventArgs e)
-        {
-            this.googleAccess.getGoogleDocsJobsAsync();
-            this.googleAccess.ConnectionComplete -= googleAccess_ConnectionCompleteDownload;
-            this.googleAccess_ConnectionComplete(sender, e);
-            this.googleAccess.ConnectionComplete += googleAccess_ConnectionComplete;
-        }
-
-        private void googleAccess_ConnectionComplete(object sender, EventArgs e)
-        {
-            this.googleConnectionComplete = true;
         }
 
         private void googleAccess_RefreshTokenChanged(object sender, string e)
@@ -124,18 +114,26 @@ namespace GoogleDocs_JobList
 
         private void loadSettings()
         {
-            this.googleOAuthKey = (string)Settings.Default["GoogleOauthKey"];
             this.RpmApiUrl = (string)Settings.Default["RpmApiUrl"];
             this.rpmApiKey = (string)Settings.Default["RpmApiKey"];
-            this.googleAccessToken = (string)Settings.Default["OAuthAccessToken"];
-            this.googleRefreshToken = (string)Settings.Default["OAuthRefreshToken"];
+            this.OAuthAccessCode = (string)Settings.Default["OAuthAccessCode"];
+            this.OAuthAccessToken = (string)Settings.Default["OAuthAccessToken"];
+            if (this.OAuthAccessToken == null)
+            {
+                this.OAuthAccessToken = "";
+            }
+            this.OAuthRefreshToken = (string)Settings.Default["OAuthRefreshToken"];
+            if (this.OAuthRefreshToken == null)
+            {
+                this.OAuthRefreshToken = "";
+            }
         }
 
         private void saveSetting(string key, string value)
         {
             Settings.Default[key] = value;
             Settings.Default.Save();
-            if (key == "GoogleOauthKey" && value != "")
+            if (key == "OAuthAccessCode" && value != "")
             {
                 this.setupGoogleAccess();
                 this.createGoogleWorksheet();
@@ -145,11 +143,14 @@ namespace GoogleDocs_JobList
 
         private void createGoogleWorksheet()
         {
-            GoogleSpreadsheetWriter writer = new GoogleSpreadsheetWriter(this.googleAccess);
-            writer.ProgressChanged += writer_ProgressChanged;
-            writer.WorkComplete += writer_WorkComplete;
-            writer.run();
-            this.GoogleSpreadsheetCreationStarted(this, null);
+            if (this.googleConnectionComplete)
+            {
+                GoogleSpreadsheetWriter writer = new GoogleSpreadsheetWriter(this.googleAccess);
+                writer.ProgressChanged += writer_ProgressChanged;
+                writer.WorkComplete += writer_WorkComplete;
+                writer.run();
+                this.GoogleSpreadsheetCreationStarted(this, null);
+            }
         }
 
         void writer_WorkComplete(object sender, RunWorkerCompletedEventArgs e)
@@ -210,7 +211,7 @@ namespace GoogleDocs_JobList
             if (!this.settingsAreComplete() || forceShow)
             {
                 SetupWindow w = new SetupWindow(
-                    this.googleOAuthKey, 
+                    this.OAuthAccessToken,
                     this.RpmApiUrl, this.rpmApiKey,
                     this.googleClientId,
                     this.googleClientSecret
@@ -223,7 +224,9 @@ namespace GoogleDocs_JobList
         public bool settingsAreComplete()
         {
             this.loadSettings();
-            return this.googleOAuthKey != "" && this.RpmApiUrl != "" && this.rpmApiKey != "";
+            return this.OAuthAccessCode != ""
+                && this.RpmApiUrl != ""
+                && this.rpmApiKey != "";
         }
 
         private void SaveSetupOption(object sender, AppSetupChangedEventArgs e)

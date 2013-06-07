@@ -18,9 +18,6 @@ namespace GoogleDocs_JobList
         private BackgroundWorker ConnectWorker = new BackgroundWorker();
         private BackgroundWorker DownloadDataWorker = new BackgroundWorker();
 
-        public event EventHandler ConnectionComplete;
-        public event EventHandler<string> AccessTokenChanged;
-        public event EventHandler<string> RefreshTokenChanged;
         public event EventHandler<Dictionary<string, JobInfo>> JobInfoReceived;
 
         private OAuth2Parameters parameters;
@@ -29,64 +26,56 @@ namespace GoogleDocs_JobList
         private string googleAppName;
         private string googleClientId = GoogleOAuthSettings.OAuthClientId;
         private string googleClientSecret = GoogleOAuthSettings.OAuthClientSecret;
-        private string googleAccessToken;
-        private string googleOAuthKey;
-        private string googleRefreshToken;
+        private string OAuthAccessCode;
+        private string OAuthAccessToken;
+        private string OAuthRefreshToken;
 
         private Dictionary<string, JobInfo> googleDocsJobs;
 
-        private string rpmApiUrl;
-        private string rpmApiKey;
-
-        public GoogleSpreadsheetAccess(string appName, string clientId, string clientSecret, string accessToken, string refreshToken)
+        public GoogleSpreadsheetAccess(string appName, string clientId, string clientSecret, string OAuthAccessCode, string accessToken, string refreshToken)
         {
             
             this.googleAppName = appName;
             this.googleClientId = clientId;
             this.googleClientSecret = clientSecret;
-            this.googleAccessToken = accessToken;
-            this.googleRefreshToken = refreshToken;
+            this.OAuthAccessCode = OAuthAccessCode;
+            this.OAuthAccessToken = accessToken;
+            this.OAuthRefreshToken = refreshToken;
 
-            this.parameters = GoogleOauthAccess.getOAuth2Parameters(clientId, clientSecret, accessToken: accessToken);
+            this.parameters = GoogleOauthAccess.getOAuth2Parameters(
+                this.googleClientId,
+                this.googleClientSecret,
+                accessToken: this.OAuthAccessCode
+            );
 
             this.service = new SpreadsheetsService(appName);
-            this.service.RequestFactory = GoogleOauthAccess.getRequestFactory(appName, this.parameters);
-
-            this.ConnectWorker.DoWork += ConnectWorker_DoWork;
-            this.ConnectWorker.RunWorkerCompleted += ConnectWorker_RunWorkerCompleted;
             
             this.DownloadDataWorker.DoWork += DownloadDataWorker_DoWork;
             this.DownloadDataWorker.RunWorkerCompleted += DownloadDataWorker_RunWorkerCompleted;
         }
 
         #region Connection Code
-        public void connect()
+        public void connect(out string OAuthAccessToken, out string OAuthRefreshToken)
         {
-            this.ConnectWorker.RunWorkerAsync();
-        }
-
-        void ConnectWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            if (this.googleAccessToken == "")
+            if (this.OAuthAccessCode != "" && this.OAuthRefreshToken == "")
             {
                 GoogleOauthAccess.getAccessTokens(
-                    this.googleClientId, this.googleClientSecret, this.googleOAuthKey,
-                    out this.googleAccessToken, out this.googleRefreshToken
+                    this.googleClientId, this.googleClientSecret, this.OAuthAccessCode,
+                    out this.OAuthAccessToken, out this.OAuthRefreshToken
                 );
             }
             else
             {
-                this.googleAccessToken = GoogleOauthAccess.getRefreshedAccessToken(
-                    this.googleClientId, this.googleClientSecret, this.googleRefreshToken
+                this.OAuthAccessToken = GoogleOauthAccess.getRefreshedAccessToken(
+                    this.googleClientId, this.googleClientSecret, this.OAuthRefreshToken
                 );
             }
-        }
+            OAuthAccessToken = this.OAuthAccessToken;
+            OAuthRefreshToken = this.OAuthRefreshToken;
 
-        void ConnectWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            this.AccessTokenChanged(this, this.googleAccessToken);
-            this.RefreshTokenChanged(this, this.googleRefreshToken);
-            this.ConnectionComplete(this, null);
+            this.parameters.RefreshToken = this.OAuthRefreshToken;
+            this.parameters.AccessToken = this.OAuthAccessToken;
+            this.service.RequestFactory = GoogleOauthAccess.getRequestFactory(this.googleAppName, this.parameters);
         } 
         #endregion
 
@@ -105,6 +94,7 @@ namespace GoogleDocs_JobList
         private WorksheetEntry searchForSpreadsheet(string sheetName)
         {
             Google.GData.Spreadsheets.SpreadsheetQuery query = new Google.GData.Spreadsheets.SpreadsheetQuery();
+ 
             SpreadsheetFeed feed = service.Query(query);
             foreach (SpreadsheetEntry entry in feed.Entries)
             {
@@ -113,6 +103,7 @@ namespace GoogleDocs_JobList
                     return (WorksheetEntry)entry.Worksheets.Entries[0];
                 }
             }
+            
             return null;
         }
 

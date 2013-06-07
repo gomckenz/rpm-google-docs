@@ -26,18 +26,6 @@ namespace GoogleDocs_JobList.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string GoogleOauthKey {
-            get {
-                return ((string)(this["GoogleOauthKey"]));
-            }
-            set {
-                this["GoogleOauthKey"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string RpmApiUrl {
             get {
                 return ((string)(this["RpmApiUrl"]));
@@ -94,7 +82,7 @@ namespace GoogleDocs_JobList.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("380463698420.apps.googleusercontent.com")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string GoogleAPIClientId {
             get {
                 return ((string)(this["GoogleAPIClientId"]));
@@ -103,10 +91,22 @@ namespace GoogleDocs_JobList.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("DMOipGVkrkr3J5EXX2I5UPFH")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string GoogleAPIClientSecret {
             get {
                 return ((string)(this["GoogleAPIClientSecret"]));
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string OAuthAccessCode {
+            get {
+                return ((string)(this["OAuthAccessCode"]));
+            }
+            set {
+                this["OAuthAccessCode"] = value;
             }
         }
     }

@@ -6,6 +6,7 @@ using System.Dynamic;
 using RestSharp;
 using RestSharp.Deserializers;
 using RPM.ApiResults;
+using System.Net;
 
 namespace RPM.Api
 {
@@ -111,6 +112,10 @@ namespace RPM.Api
 
             RestResponse response = (RestResponse)this.client.Execute(request);
 
+            if (response.StatusDescription.ToString() == "Not Found")
+            {
+                throw new WebException("Not Found");
+            }
             JsonDeserializer js = new JsonDeserializer();
             response.Content = response.Content.Replace("{\"Result\":", "");
             response.Content = response.Content.Substring(0, response.Content.Length - 1);

@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using System.Windows.Media.Animation;
 
 using GoogleDocs_JobList.AsyncWork;
+using System.Net;
 
 namespace GoogleDocs_JobList
 {
@@ -32,23 +33,21 @@ namespace GoogleDocs_JobList
         private static DoubleAnimation hideAnimation = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(.2));
         private static DoubleAnimation showAnimation = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(.2));
 
-        private string googleOAuthKey;
-        private string rpmApiUrl;
-        private string rpmApiKey;
+        private string OAuthAccessCode;
         private string clientId;
         private string clientSecret;
         private App app;
         private bool rpmAccessWorked;
 
-        public SetupWindow(string googleOAuthKey, string rpmApiUrl, string rpmApiKey, string clientId, string clientSecret)
+        public SetupWindow(string OAuthAccessCode, string rpmApiUrl, string rpmApiKey, string clientId, string clientSecret)
         {
             InitializeComponent();
-            this.googleOAuthKey = googleOAuthKey;
-            this.rpmApiUrl = rpmApiUrl;
-            this.rpmApiKey = rpmApiKey;
+            this.OAuthAccessCode = OAuthAccessCode;
+            this.RpmApiUrl.Text = rpmApiUrl;
+            this.RpmApiKey.Text = rpmApiKey;
             this.clientId = clientId;
             this.clientSecret = clientSecret;
-            if (this.googleOAuthKey != "")
+            if (this.OAuthAccessCode != "")
             {
                 this.AuthorizedLabel.Visibility = System.Windows.Visibility.Visible;
                 this.GoogleAuthorizeButton.Content = "Deauthorize";
@@ -88,7 +87,7 @@ namespace GoogleDocs_JobList
         private void GoogleAuthorizeButton_Click(object sender, RoutedEventArgs e)
         {
             this.loseFocus();
-            if (this.googleOAuthKey == "")
+            if (this.OAuthAccessCode == "")
             {
                 this.DoneButton.Content = "Cancel";
                 this.showBrowser();
@@ -115,13 +114,13 @@ namespace GoogleDocs_JobList
                 this.GoogleAuthorizeButton.Content = "Deauthorize";
                 this.AuthorizedLabel.Visibility = System.Windows.Visibility.Visible;
             }
-            if (this.googleOAuthKey != newCode)
+            if (this.OAuthAccessCode != newCode)
             {
                 this.OnSetupOptionChanged(
-                    new AppSetupChangedEventArgs("GoogleOauthKey", newCode)
+                    new AppSetupChangedEventArgs("OAuthAccessCode", newCode)
                 );
             }
-            this.googleOAuthKey = newCode;
+            this.OAuthAccessCode = newCode;
         }
 
         private void Browser_Navigated(object sender, System.Windows.Navigation.NavigationEventArgs e)
@@ -167,27 +166,24 @@ namespace GoogleDocs_JobList
             );
         }
 
-        private void RpmApiUrl_Loaded(object sender, RoutedEventArgs e)
-        {
-            TextBox t = (TextBox)sender;
-            t.Text = this.rpmApiUrl;
-            this.rpmAccessWorked = false;
-        }
-
-        private void RpmApiKey_Loaded(object sender, RoutedEventArgs e)
-        {
-            TextBox t = (TextBox)sender;
-            t.Text = this.rpmApiKey;
-            this.rpmAccessWorked = false;
-        }
-
         private void checkRPMAccess()
         {
-            if (this.rpmApiKey != "" && this.rpmApiUrl != "")
+            if (this.RpmApiKey.Text != "" && this.RpmApiUrl.Text != "")
             {
-                RPMSync rpmAccess = new RPMSync(this.rpmApiUrl, this.rpmApiKey);
-                rpmAccess.AccessCheckComplete += rpmAccess_AccessCheckComplete;
-                rpmAccess.checkRPMAccess();
+                try
+                {
+                    RPMSync rpmAccess = new RPMSync(this.RpmApiUrl.Text, this.RpmApiKey.Text);
+                    rpmAccess.AccessCheckComplete += rpmAccess_AccessCheckComplete;
+                    rpmAccess.checkRPMAccess();
+                }
+                catch (WebException webex)
+                {
+                    if (webex.Message == "Not Found")
+                    {
+                        this.rpmAccessWorked = false;
+                        this.showRPMAccessError();
+                    }
+                }
             }
         }
 
@@ -206,7 +202,10 @@ namespace GoogleDocs_JobList
 
         private void showRPMAccessError()
         {
-            throw new NotImplementedException();
+            MessageBoxResult result = MessageBox.Show(
+                "Could Not Connect to RPM", "Error",
+                MessageBoxButton.OK, MessageBoxImage.Error
+            );
         }
 
         private void DoneButton_Click(object sender, RoutedEventArgs e)

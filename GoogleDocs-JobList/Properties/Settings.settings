@@ -2,9 +2,6 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="GoogleDocs_JobList.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="GoogleOauthKey" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
     <Setting Name="RpmApiUrl" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
@@ -24,6 +21,9 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="GoogleAPIClientSecret" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="OAuthAccessCode" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
   </Settings>
