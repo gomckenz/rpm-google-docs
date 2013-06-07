@@ -41,6 +41,10 @@ namespace GoogleDocs_JobList
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             this.app = (App)Application.Current;
+            while (!this.app.settingsAreComplete())
+            {
+                this.app.showSetupWindow();
+            }
             this.app.JobInfoReceived += app_JobInfoReceived;
             this.app.RPMSyncComplete += app_RPMSyncComplete;
             this.app.RPMSyncProgress += app_RPMSyncProgress;

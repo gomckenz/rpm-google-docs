@@ -33,7 +33,7 @@ namespace GoogleDocs_JobList.AsyncWork
             this.writeToGoogleWorker.RunWorkerAsync();
         }
 
-        public bool setup()
+        private bool setup()
         {
             WorksheetEntry ws = this.access.getDataWorksheet();
             if (ws.Title.Text != "Data")
@@ -53,8 +53,10 @@ namespace GoogleDocs_JobList.AsyncWork
             cellFeed.Insert(new CellEntry(1, 1, "JobID"));
             cellFeed.Insert(new CellEntry(1, 2, "Job Description"));
             cellFeed.Insert(new CellEntry(1, 3, "Job Location"));
-
-            this.writeJobsToGoogleDocs(cellFeed);
+            if (this.setup())
+            {
+                this.writeJobsToGoogleDocs(cellFeed);
+            }
         }
         void writingProgressChanged(object sender, ProgressChangedEventArgs e)
         {

@@ -26,6 +26,10 @@ namespace GoogleDocs_JobList
         public event ProgressChangedEventHandler RPMSyncProgress;
         public event EventHandler<int> RPMSyncComplete;
 
+        public event EventHandler GoogleSpreadsheetCreationStarted;
+        public event ProgressChangedEventHandler GoogleSpreadsheetCreationProgress;
+        public event RunWorkerCompletedEventHandler GoogleSpreadsheetCreationComplete;
+
         private GoogleSpreadsheetAccess googleAccess;
         private RPMSync sync;
 
@@ -49,16 +53,30 @@ namespace GoogleDocs_JobList
 
         public App()
         {
-            this.loadSettings();
-            this.googleAccess = new GoogleSpreadsheetAccess(this.googleAppName, this.googleClientId, this.googleClientSecret, this.googleAccessToken, this.googleRefreshToken);
-            this.googleAccess.AccessTokenChanged += googleAccess_AccessTokenChanged;
-            this.googleAccess.RefreshTokenChanged += googleAccess_RefreshTokenChanged;
-            this.googleAccess.ConnectionComplete += googleAccess_ConnectionComplete;
-            this.googleAccess.JobInfoReceived += googleAccess_JobInfoReceived;
+            this.setup();
+        }
 
-            this.sync = new RPMSync(this.RpmApiUrl, this.rpmApiKey);
-            this.sync.WorkComplete += sync_WorkComplete;
-            this.sync.ProgressChanged += sync_ProgressChanged;
+        public void setup()
+        {
+            if (this.settingsAreComplete())
+            {
+                this.sync = new RPMSync(this.RpmApiUrl, this.rpmApiKey);
+                this.sync.WorkComplete += sync_WorkComplete;
+                this.sync.ProgressChanged += sync_ProgressChanged;
+            }
+            this.setupGoogleAccess();
+        }
+
+        private void setupGoogleAccess()
+        {
+            if (this.googleOAuthKey != "")
+            {
+                this.googleAccess = new GoogleSpreadsheetAccess(this.googleAppName, this.googleClientId, this.googleClientSecret, this.googleAccessToken, this.googleRefreshToken);
+                this.googleAccess.AccessTokenChanged += googleAccess_AccessTokenChanged;
+                this.googleAccess.RefreshTokenChanged += googleAccess_RefreshTokenChanged;
+                this.googleAccess.ConnectionComplete += googleAccess_ConnectionComplete;
+                this.googleAccess.JobInfoReceived += googleAccess_JobInfoReceived;
+            }
         }
 
         public void getJobsListAsync()
@@ -117,7 +135,31 @@ namespace GoogleDocs_JobList
         {
             Settings.Default[key] = value;
             Settings.Default.Save();
+            if (key == "GoogleOauthKey" && value != "")
+            {
+                this.setupGoogleAccess();
+                this.createGoogleWorksheet();
+            }
             this.loadSettings();
+        }
+
+        private void createGoogleWorksheet()
+        {
+            GoogleSpreadsheetWriter writer = new GoogleSpreadsheetWriter(this.googleAccess);
+            writer.ProgressChanged += writer_ProgressChanged;
+            writer.WorkComplete += writer_WorkComplete;
+            writer.run();
+            this.GoogleSpreadsheetCreationStarted(this, null);
+        }
+
+        void writer_WorkComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.GoogleSpreadsheetCreationComplete(this, e);
+        }
+
+        void writer_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            this.GoogleSpreadsheetCreationProgress(this, e);
         }
 
         public void syncRPMAsync()
@@ -165,8 +207,7 @@ namespace GoogleDocs_JobList
 
         public void showSetupWindow(bool forceShow = false)
         {
-            this.loadSettings();
-            if (this.googleOAuthKey == "" || this.RpmApiUrl == "" || this.rpmApiKey == "" || forceShow)
+            if (!this.settingsAreComplete() || forceShow)
             {
                 SetupWindow w = new SetupWindow(
                     this.googleOAuthKey, 
@@ -177,6 +218,12 @@ namespace GoogleDocs_JobList
                 w.SetupOptionChanged += this.SaveSetupOption;
                 w.ShowDialog();
             }
+        }
+
+        public bool settingsAreComplete()
+        {
+            this.loadSettings();
+            return this.googleOAuthKey != "" && this.RpmApiUrl != "" && this.rpmApiKey != "";
         }
 
         private void SaveSetupOption(object sender, AppSetupChangedEventArgs e)

@@ -37,7 +37,7 @@ namespace GoogleDocs_JobList
         private string rpmApiKey;
         private string clientId;
         private string clientSecret;
-
+        private App app;
         private bool rpmAccessWorked;
 
         public SetupWindow(string googleOAuthKey, string rpmApiUrl, string rpmApiKey, string clientId, string clientSecret)
@@ -53,6 +53,28 @@ namespace GoogleDocs_JobList
                 this.AuthorizedLabel.Visibility = System.Windows.Visibility.Visible;
                 this.GoogleAuthorizeButton.Content = "Deauthorize";
             }
+            this.app = (App)Application.Current;
+            this.app.GoogleSpreadsheetCreationStarted += app_GoogleSpreadsheetCreationStarted;
+            this.app.GoogleSpreadsheetCreationComplete += app_GoogleSpreadsheetCreationComplete;
+            this.app.GoogleSpreadsheetCreationProgress += app_GoogleSpreadsheetCreationProgress;
+        }
+
+        void app_GoogleSpreadsheetCreationStarted(object sender, EventArgs e)
+        {
+            this.DoneButton.IsEnabled = false;
+            this.GoogleAuthorizeButton.Content = "Creating Data...";
+        }
+
+        void app_GoogleSpreadsheetCreationProgress(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+        {
+            this.GoogleAuthorizeButton.Content = "Creating Data " + e.ProgressPercentage + "%";
+        }
+
+        void app_GoogleSpreadsheetCreationComplete(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+        {
+            this.AuthorizedLabel.Visibility = System.Windows.Visibility.Visible;
+            this.DoneButton.IsEnabled = true;
+            this.GoogleAuthorizeButton.Content = "Deauthorize";
         }
 
         public virtual void OnSetupOptionChanged(AppSetupChangedEventArgs e)
@@ -83,13 +105,6 @@ namespace GoogleDocs_JobList
 
         private void triggerOauthUpdate(string newCode)
         {
-            if (this.googleOAuthKey != newCode)
-            {
-                this.OnSetupOptionChanged(
-                    new AppSetupChangedEventArgs("GoogleOauthKey", newCode)
-                );
-            }
-            this.googleOAuthKey = newCode;
             if (newCode == "")
             {
                 this.GoogleAuthorizeButton.Content = "Authorize";
@@ -100,6 +115,13 @@ namespace GoogleDocs_JobList
                 this.GoogleAuthorizeButton.Content = "Deauthorize";
                 this.AuthorizedLabel.Visibility = System.Windows.Visibility.Visible;
             }
+            if (this.googleOAuthKey != newCode)
+            {
+                this.OnSetupOptionChanged(
+                    new AppSetupChangedEventArgs("GoogleOauthKey", newCode)
+                );
+            }
+            this.googleOAuthKey = newCode;
         }
 
         private void Browser_Navigated(object sender, System.Windows.Navigation.NavigationEventArgs e)
@@ -111,7 +133,7 @@ namespace GoogleDocs_JobList
             if (title.Contains("Success"))
             {
                 string successCode = title.Substring(title.IndexOf("=") + 1);
-                this.triggerOauthUpdate(successCode);
+                this.triggerOauthUpdate(successCode); // This will trigger creating the worksheet
                 this.hideBrowser();
             }
         }
@@ -128,6 +150,7 @@ namespace GoogleDocs_JobList
             this.hideShowGrid(this.GoogleAuthGrid, hideAnimation);
             this.hideShowGrid(this.SetupOptionsGrid, showAnimation);
             this.GoogleAuthGrid.Visibility = System.Windows.Visibility.Hidden;
+            this.Browser.Navigate("about:blank");
             this.DoneButton.Content = "Done";
         }
 
@@ -203,8 +226,7 @@ namespace GoogleDocs_JobList
         private void DownloadRPMPRocessButton_Click(object sender, RoutedEventArgs e)
         {
             this.loseFocus();
-            App app = (App)Application.Current;
-            app.saveJobXML();
+            this.app.saveJobXML();
         }
 
         private void loseFocus()

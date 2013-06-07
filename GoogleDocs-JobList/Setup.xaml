@@ -53,18 +53,18 @@
             </Border>
             <Button
                 Grid.Row="4" Grid.Column="1"
-                x:Name="DownloadRPMPRocessButton" Content="Download" HorizontalAlignment="Left" Margin="20,0,0,10" VerticalAlignment="Bottom" BorderThickness="1" Background="#FFFBFBFB" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" BorderBrush="#FF0C142E" FontSize="16" Click="DownloadRPMPRocessButton_Click" Width="120" />
+                x:Name="DownloadRPMPRocessButton" Content="Download" HorizontalAlignment="Left" Margin="20,0,0,10" VerticalAlignment="Bottom" BorderThickness="1" Background="#FFFBFBFB" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" BorderBrush="#FF0C142E" FontSize="16" Click="DownloadRPMPRocessButton_Click" Width="160" />
             <Label Content="Google Auth" Grid.Row="7" Grid.Column="0"
                     FontSize="16" Foreground="White" Padding="10,18,10,0" Background="#FF0C142E"
                     Margin="0" UseLayoutRounding="True"/>
             <Border Grid.Row="7" Grid.Column="1" Background="#FFF3F3F3" BorderBrush="#FF595959" BorderThickness="1,0,0,0" >
-                <Button x:Name="GoogleAuthorizeButton" Content="Authorize" Grid.Column="1" HorizontalAlignment="Left" Margin="20,180,20,20" Grid.Row="5" VerticalAlignment="Top" BorderThickness="1" Background="#FFFBFBFB" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" BorderBrush="#FF0C142E" FontSize="16" Click="GoogleAuthorizeButton_Click" Width="120" />
+                <Button x:Name="GoogleAuthorizeButton" Content="Authorize" Grid.Column="1" HorizontalAlignment="Left" Margin="20,180,0,0" Grid.Row="5" VerticalAlignment="Top" BorderThickness="1" Background="#FFFBFBFB" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" BorderBrush="#FF0C142E" FontSize="16" Click="GoogleAuthorizeButton_Click" Width="160" />
             </Border>
             <Label x:Name="AuthorizedLabel" 
-                   Grid.Column="1" Grid.Row="4" Margin="144,179,0,0" 
+                   Grid.Column="1" Grid.Row="6" Margin="180,178,0,0" 
                    VerticalAlignment="Top" HorizontalAlignment="Left" 
                    FontSize="15" Foreground="#FF2C7A00" Visibility="Hidden"
-                   Content="Authorized!"></Label>
+                   Content="Authorized!" Height="29"></Label>
             <TextBlock Grid.Column="1" Margin="20" Grid.Row="7" TextWrapping="Wrap" FontSize="15" VerticalAlignment="Top" MaxWidth="600"><Run Text="You are authorizing this application to access Google Spreadsheets for the purpose of this Demo."/><LineBreak/><Run/><LineBreak/><Run Text="It will create a Spreadsheet to be used as a database of jobs."/><LineBreak/><Run/><LineBreak/><Run Text="The jobs stored in it will be then pulled into RPM where an Incident Tracking will associate those job information and stay in sync."/></TextBlock>
         </Grid>
 
