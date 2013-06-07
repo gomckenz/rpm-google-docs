@@ -13,6 +13,7 @@ using System.IO;
 using GoogleDocs_JobList.Properties;
 using GoogleDocs_JobList.AsyncWork;
 using System.Text;
+using Microsoft.Win32;
 
 namespace GoogleDocs_JobList
 {
@@ -64,6 +65,7 @@ namespace GoogleDocs_JobList
         {
             if (!this.googleConnectionComplete)
             {
+                this.googleAccess.ConnectionComplete -= googleAccess_ConnectionComplete;
                 this.googleAccess.ConnectionComplete += googleAccess_ConnectionCompleteDownload;
                 this.googleAccess.connect();
             }
@@ -83,6 +85,8 @@ namespace GoogleDocs_JobList
         {
             this.googleAccess.getGoogleDocsJobsAsync();
             this.googleAccess.ConnectionComplete -= googleAccess_ConnectionCompleteDownload;
+            this.googleAccess_ConnectionComplete(sender, e);
+            this.googleAccess.ConnectionComplete += googleAccess_ConnectionComplete;
         }
 
         private void googleAccess_ConnectionComplete(object sender, EventArgs e)
@@ -143,11 +147,20 @@ namespace GoogleDocs_JobList
 
         public void saveJobXML()
         {
-            File.WriteAllText(
-                "C:/External_JobInformation.xml",
-                GoogleDocs_JobList.Properties.Resources.External_JobInformation,
-                Encoding.UTF8
-            );
+            SaveFileDialog fd = new SaveFileDialog();
+            fd.FileName = "External_JobInformation";
+            fd.DefaultExt = ".xml";
+            fd.Filter = "XML Document (.xml)|*.xml";
+
+            Nullable<bool> result = fd.ShowDialog();
+            if (result == true)
+            {
+                File.WriteAllText(
+                    fd.FileName,
+                    GoogleDocs_JobList.Properties.Resources.External_JobInformation,
+                    Encoding.UTF8
+                );
+            }
         }
 
         public void showSetupWindow(bool forceShow = false)

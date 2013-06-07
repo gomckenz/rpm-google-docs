@@ -30,12 +30,10 @@ namespace GoogleDocs_JobList
 
         public ObservableCollection<JobInfo> Jobs { private set; get; }
         App app;
-        private string SynchronizeButtonText;
 
         public DataListing()
         {
             InitializeComponent();
-            this.SynchronizeButtonText = this.SynchronizeButton.Content.ToString();
             this.DataContext = this;
             this.Jobs = new ObservableCollection<JobInfo>();
         }
@@ -46,28 +44,55 @@ namespace GoogleDocs_JobList
             this.app.JobInfoReceived += app_JobInfoReceived;
             this.app.RPMSyncComplete += app_RPMSyncComplete;
             this.app.RPMSyncProgress += app_RPMSyncProgress;
+            this.setupAnimation();
+            this.clearLoadingMessage();
             this.loadJobsData();
+        }
+
+        private void setupAnimation()
+        {
+            DoubleAnimation rotate = new DoubleAnimation(0, 360, new Duration(TimeSpan.FromSeconds(.5)));
+            rotate.RepeatBehavior = RepeatBehavior.Forever;
+            RotateTransform rt = new RotateTransform();
+            this.LoadingImage.RenderTransform = rt;
+            this.LoadingImage.RenderTransformOrigin = new Point(0.5, 0.5);
+            rt.BeginAnimation(RotateTransform.AngleProperty, rotate);
         }
 
         private void setLoadingMessage(string message)
         {
+            this.LoadingImage.Visibility = Visibility.Visible;
             this.LoadingMessage.Content = message;  
         }
 
         private void clearLoadingMessage()
         {
+            this.LoadingImage.Visibility = Visibility.Hidden;
             this.LoadingMessage.Content = "";
         }
 
         #region Google Data Download
         private void RefreshDataButton_Click(object sender, RoutedEventArgs e)
         {
+            this.loseFocus();
+            this.disableButtons();
             this.loadJobsData();
         }
-        private void loadJobsData()
+
+        private void disableButtons()
         {
             this.RefreshDataButton.IsEnabled = false;
-            this.setLoadingMessage("Loading External Data");
+            this.SynchronizeButton.IsEnabled = false;
+        }
+        private void enableButtons()
+        {
+            this.RefreshDataButton.IsEnabled = true;
+            this.SynchronizeButton.IsEnabled = true;
+        }
+
+        private void loadJobsData()
+        {
+            this.setLoadingMessage("Loading Jobs Data");
             this.app.getJobsListAsync();
         }
         void app_JobInfoReceived(object sender, Dictionary<string, JobInfo> e)
@@ -77,7 +102,7 @@ namespace GoogleDocs_JobList
             {
                 this.Jobs.Add(job);
             }
-            this.RefreshDataButton.IsEnabled = true;
+            this.enableButtons();
             this.clearLoadingMessage();
         } 
         #endregion
@@ -85,16 +110,14 @@ namespace GoogleDocs_JobList
         #region RPM Sync
         private void SynchronizeButton_Click(object sender, RoutedEventArgs e)
         {
-            this.SynchronizeButton.IsEnabled = false;
-            Keyboard.Focus(this.FocusControl);
-            this.setLoadingMessage("Updating RPM...");
+            this.loseFocus();
+            this.disableButtons();
+            this.setLoadingMessage("Updating RPM");
             this.app.syncRPMAsync();
         }
         void app_RPMSyncComplete(object sender, int e)
         {
-            this.SynchronizeButton.IsEnabled = true;
-            this.SynchronizeButton.Content = this.SynchronizeButtonText;
-            Keyboard.Focus(this.FocusControl);
+            this.enableButtons();
             this.clearLoadingMessage();
         }
         void app_RPMSyncProgress(object sender, System.ComponentModel.ProgressChangedEventArgs e) { } 
@@ -102,23 +125,25 @@ namespace GoogleDocs_JobList
 
         private void JobsDataButton_Click(object sender, RoutedEventArgs e)
         {
+            this.loseFocus();
             this.app.openWorksheetInBrowser();
         }
 
         private void GoToRPM_Click(object sender, RoutedEventArgs e)
         {
+            this.loseFocus();
             this.app.openRPMInBrowser();
-        }
-
-        private void SetupJobsXmlButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.app.saveJobXML();
         }
 
         private void SetupButton_Click(object sender, RoutedEventArgs e)
         {
-            Keyboard.Focus(this.FocusControl);
+            this.loseFocus();
             this.app.showSetupWindow(true);
+        }
+
+        private void loseFocus()
+        {
+            Keyboard.Focus(this.FocusControl);
         }
     }
 }

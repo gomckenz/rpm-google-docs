@@ -65,6 +65,7 @@ namespace GoogleDocs_JobList
 
         private void GoogleAuthorizeButton_Click(object sender, RoutedEventArgs e)
         {
+            this.loseFocus();
             if (this.googleOAuthKey == "")
             {
                 this.DoneButton.Content = "Cancel";
@@ -187,7 +188,7 @@ namespace GoogleDocs_JobList
 
         private void DoneButton_Click(object sender, RoutedEventArgs e)
         {
-            Keyboard.Focus(this.FocusControl);
+            this.loseFocus();
             if (this.DoneButton.Content.ToString() == "Cancel")
             {
                 this.DoneButton.Content = "Done";
@@ -197,6 +198,18 @@ namespace GoogleDocs_JobList
             {
                 this.checkRPMAccess();
             }
+        }
+
+        private void DownloadRPMPRocessButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.loseFocus();
+            App app = (App)Application.Current;
+            app.saveJobXML();
+        }
+
+        private void loseFocus()
+        {
+            Keyboard.Focus(this.FocusControl);
         }
     }
 }
