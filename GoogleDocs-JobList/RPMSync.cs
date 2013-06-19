@@ -7,13 +7,13 @@ using System.Dynamic;
 
 using RPM.Api;
 using RPM.ApiResults;
+using GoogleDocs_JobList;
 
 namespace GoogleDocs_JobList.AsyncWork
 {
     class RPMSync
     {
         public event RunWorkerCompletedEventHandler WorkComplete;
-        public event RunWorkerCompletedEventHandler AccessCheckComplete;
         public event ProgressChangedEventHandler ProgressChanged;
 
         private readonly BackgroundWorker syncDataWorker = new BackgroundWorker();
@@ -49,11 +49,17 @@ namespace GoogleDocs_JobList.AsyncWork
             this.syncDataWorker.RunWorkerCompleted += syncingComplete;
             this.syncDataWorker.ProgressChanged += syncingProgressChanged;
 
-            this.rpmInfoCheckWorker.DoWork += async_checkRPMAccess;
-            this.rpmInfoCheckWorker.RunWorkerCompleted += async_checkRPMAccessCompleted;
+            this.checkRPMAccess();
 
-            ProcsResult procs = this.getAllProcs();
-            this.jobProcess = this.getProc("External-JobInformation", procs);
+            if (this.infoSuccessful())
+            {
+                ProcsResult procs = this.getAllProcs();
+                this.jobProcess = this.getProc("External-JobInformation", procs);
+                if (this.jobProcess == null)
+                {
+                    throw new ProcessNotFoundException("The RPM Process \"External-JobInformation\" was not Found.");
+                }
+            }
         }
 
         public void run(Dictionary<string, JobInfo> newData)
@@ -207,16 +213,6 @@ namespace GoogleDocs_JobList.AsyncWork
         }
 
         public void checkRPMAccess()
-        {
-            this.rpmInfoCheckWorker.RunWorkerAsync();
-        }
-
-        void async_checkRPMAccessCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            this.AccessCheckComplete(this, e);
-        }
-
-        void async_checkRPMAccess(object sender, DoWorkEventArgs e)
         {
             this.info = this.API.info();
         }

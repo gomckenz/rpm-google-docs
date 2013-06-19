@@ -15,6 +15,7 @@ using System.Windows.Media.Animation;
 
 using GoogleDocs_JobList.AsyncWork;
 using System.Net;
+using RPM.ApiResults;
 
 namespace GoogleDocs_JobList
 {
@@ -39,12 +40,17 @@ namespace GoogleDocs_JobList
         private App app;
         private bool rpmAccessWorked;
 
+        private const string PLACEHOLDER_URL =  "https://example.com/rpm/";
+        private const string PLACEHOLDER_KEY =  "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
+
         public SetupWindow(string OAuthAccessCode, string rpmApiUrl, string rpmApiKey, string clientId, string clientSecret)
         {
             InitializeComponent();
             this.OAuthAccessCode = OAuthAccessCode;
             this.RpmApiUrl.Text = rpmApiUrl;
+            this.setTextboxPlaceholder(this.RpmApiUrl, PLACEHOLDER_URL);
             this.RpmApiKey.Text = rpmApiKey;
+            this.setTextboxPlaceholder(this.RpmApiKey, PLACEHOLDER_KEY);
             this.clientId = clientId;
             this.clientSecret = clientSecret;
             if (this.OAuthAccessCode != "")
@@ -161,49 +167,66 @@ namespace GoogleDocs_JobList
         private void TextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             TextBox t = (TextBox)sender;
+            string placeHolderText = (t.Name == "RpmApiUrl" ? PLACEHOLDER_URL : PLACEHOLDER_KEY);
+            string value = t.Text;
+            if (t.Text == placeHolderText)
+            {
+                value = "";
+            }
             this.OnSetupOptionChanged(
-                new AppSetupChangedEventArgs(t.Name, t.Text)
+                new AppSetupChangedEventArgs(t.Name, value)
             );
+            this.setTextboxPlaceholder(t, placeHolderText);
+        }
+
+        private void setTextboxPlaceholder(TextBox t, string placeHolderText)
+        {
+            if (t.Text == placeHolderText || t.Text == "")
+            {
+                t.Text = placeHolderText;
+                t.Foreground = Brushes.Gray;
+            } else {
+                t.Foreground = Brushes.Black;
+            }
         }
 
         private void checkRPMAccess()
         {
-            if (this.RpmApiKey.Text != "" && this.RpmApiUrl.Text != "")
+            if (this.RpmApiKey.Text != PLACEHOLDER_KEY && this.RpmApiUrl.Text != PLACEHOLDER_URL)
             {
+                string errorMessage = "";
+                this.rpmAccessWorked = false;
                 try
                 {
                     RPMSync rpmAccess = new RPMSync(this.RpmApiUrl.Text, this.RpmApiKey.Text);
-                    rpmAccess.AccessCheckComplete += rpmAccess_AccessCheckComplete;
-                    rpmAccess.checkRPMAccess();
+                    this.rpmAccessWorked = rpmAccess.infoSuccessful();
                 }
                 catch (WebException webex)
                 {
-                    if (webex.Message == "Not Found")
+                    errorMessage = "Could not connect to RPM: " + webex.Message;
+                }
+                catch (RPMApiError apiError)
+                {
+                    errorMessage = apiError.Message;
+                }
+                catch (ProcessNotFoundException pnfE)
+                {
+                    errorMessage = pnfE.Message;
+                }
+                finally
+                {
+                    if (errorMessage != "")
                     {
-                        this.rpmAccessWorked = false;
-                        this.showRPMAccessError();
+                        this.showRPMAccessError(errorMessage);
                     }
                 }
             }
         }
 
-        void rpmAccess_AccessCheckComplete(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
-        {
-            this.rpmAccessWorked = ((RPMSync)sender).infoSuccessful();
-            if (this.rpmAccessWorked)
-            {
-                this.Close();
-            }
-            else
-            {
-                this.showRPMAccessError();
-            }
-        }
-
-        private void showRPMAccessError()
+        private void showRPMAccessError(string message = "Could Not Connect to RPM")
         {
             MessageBoxResult result = MessageBox.Show(
-                "Could Not Connect to RPM", "Error",
+                message, "RPM Setup Error",
                 MessageBoxButton.OK, MessageBoxImage.Error
             );
         }
@@ -218,7 +241,7 @@ namespace GoogleDocs_JobList
             }
             else
             {
-                this.checkRPMAccess();
+                this.Close();
             }
         }
 
@@ -231,6 +254,47 @@ namespace GoogleDocs_JobList
         private void loseFocus()
         {
             Keyboard.Focus(this.FocusControl);
+        }
+
+        private void RpmApiUrl_GotFocus(object sender, RoutedEventArgs e)
+        {
+            this.RpmApiUrl.Foreground = Brushes.Black;
+            if (this.RpmApiUrl.Text == PLACEHOLDER_URL)
+            {
+                this.RpmApiUrl.SelectAll();
+            }
+        }
+
+        private void RpmApiKey_GotFocus(object sender, RoutedEventArgs e)
+        {
+            this.RpmApiKey.Foreground = Brushes.Black;
+            if (this.RpmApiKey.Text == PLACEHOLDER_KEY)
+            {
+                this.RpmApiKey.SelectAll();
+            }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (this.RpmApiKey.Text == PLACEHOLDER_KEY ||
+                this.RpmApiUrl.Text == PLACEHOLDER_URL ||
+                this.OAuthAccessCode == ""
+               )
+            {
+                MessageBox.Show("Setup is incomplete");
+                e.Cancel = true;
+                return;
+            }
+            this.checkRPMAccess();
+            if (!this.rpmAccessWorked)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.checkRPMAccess();
         }
     }
 }

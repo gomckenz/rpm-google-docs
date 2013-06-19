@@ -1,11 +1,12 @@
 ﻿<Window x:Class="GoogleDocs_JobList.SetupWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Setup" MinHeight="620" Height="620" Width="700" MaxWidth="700" MinWidth="700" >
+        Title="Setup" MinHeight="620" Height="581" Width="720" MaxWidth="720" MinWidth="720"
+        Closing="Window_Closing" Loaded="Window_Loaded">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="47" />
-            <RowDefinition Height="430*"/>
+            <RowDefinition Height="330*"/>
             <RowDefinition Height="10" />
             <RowDefinition Height="40" />
         </Grid.RowDefinitions>
@@ -22,7 +23,7 @@
                 <RowDefinition Height="10"/>
                 <RowDefinition Height="45"/>
                 <RowDefinition Height="10"/>
-                <RowDefinition Height="100"/>
+                <RowDefinition Height="150"/>
                 <RowDefinition Height="10"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
@@ -38,7 +39,7 @@
                          Grid.Column="1" Grid.Row="1"
                          TextWrapping="Wrap" Text=""
                          Margin="20,0" FontSize="16" BorderThickness="0,0,0,1" Height="25"
-                         LostFocus="TextBox_LostFocus"/>
+                         LostFocus="TextBox_LostFocus" GotFocus="RpmApiUrl_GotFocus"/>
             </Border>
 
             <Label Content="RPM API Key" Grid.Row="2" Grid.Column="0"
@@ -46,29 +47,34 @@
                     Margin="0" UseLayoutRounding="True" VerticalContentAlignment="Center"/>
 
             <Border Grid.Row="2" Grid.Column="1" Background="#FFF3F3F3" BorderBrush="#FF595959" BorderThickness="1,0,0,0" >
-                <TextBox x:Name="RpmApiKey" TextWrapping="Wrap" Text="" Grid.Column="1" Margin="20,0" FontSize="16" BorderThickness="0,0,0,1" Grid.Row="1" LostFocus="TextBox_LostFocus" Height="25"/>
+                <TextBox
+                    x:Name="RpmApiKey"
+                    TextWrapping="Wrap" Text=""
+                    Grid.Column="1" Grid.Row="1"
+                    Height="25" Margin="20,0" FontSize="16" BorderThickness="0,0,0,1"
+                    LostFocus="TextBox_LostFocus" GotFocus="RpmApiKey_GotFocus" />
             </Border>
             <Label Content="RPM Process" Grid.Row="4" Grid.Column="0"
-                    FontSize="16" Foreground="White" Padding="10,0" Background="#FF0C142E"
-                    Margin="0" UseLayoutRounding="True" VerticalContentAlignment="Center"/>
+                    FontSize="16" Foreground="White" Padding="10,10,10,0" Background="#FF0C142E"
+                    Margin="0" UseLayoutRounding="True"/>
             <Border Grid.Column="2" Grid.Row="4" Background="#FFF3F3F3" BorderBrush="#FF595959" BorderThickness="1,0,0,0" >
-                <TextBlock  VerticalAlignment="Top" TextWrapping="Wrap" FontSize="16" LineHeight="20" Padding="20,10,20,0"><Run Text="This Application Requires A Process to be created in your RPM subscription. Download the template:"/></TextBlock>
+                <TextBlock  VerticalAlignment="Top" TextWrapping="Wrap" FontSize="16" LineHeight="20" Padding="20,10,20,0"><Run Text="This application expects that your RPM subscription contains a process named External-JobInformation with certain fields in it. "/><LineBreak/><Run/><LineBreak/><Run Text="Create the process using this template file:"/></TextBlock>
             </Border>
             <Button
                 Grid.Row="4" Grid.Column="1"
-                x:Name="DownloadRPMPRocessButton" Content="Download" HorizontalAlignment="Left" Margin="20,0,0,10" VerticalAlignment="Bottom" BorderThickness="1" Background="#FFFBFBFB" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" BorderBrush="#FF0C142E" FontSize="16" Click="DownloadRPMPRocessButton_Click" Width="160" />
+                x:Name="DownloadRPMPRocessButton" Content="Download" HorizontalAlignment="Left" Margin="20,110,0,10" VerticalAlignment="Top" BorderThickness="1" Background="#FFFBFBFB" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" BorderBrush="#FF0C142E" FontSize="16" Click="DownloadRPMPRocessButton_Click" Width="160" />
             <Label Content="Google Auth" Grid.Row="7" Grid.Column="0"
-                    FontSize="16" Foreground="White" Padding="10,18,10,0" Background="#FF0C142E"
+                    FontSize="16" Foreground="White" Padding="10,10,10,0" Background="#FF0C142E"
                     Margin="0" UseLayoutRounding="True"/>
             <Border Grid.Row="7" Grid.Column="1" Background="#FFF3F3F3" BorderBrush="#FF595959" BorderThickness="1,0,0,0" >
-                <Button x:Name="GoogleAuthorizeButton" Content="Authorize" Grid.Column="1" HorizontalAlignment="Left" Margin="20,180,0,0" Grid.Row="5" VerticalAlignment="Top" BorderThickness="1" Background="#FFFBFBFB" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" BorderBrush="#FF0C142E" FontSize="16" Click="GoogleAuthorizeButton_Click" Width="160" />
+                <Button x:Name="GoogleAuthorizeButton" Content="Authorize" Grid.Column="1" HorizontalAlignment="Left" Margin="20,90,0,10" Grid.Row="5" VerticalAlignment="Top" BorderThickness="1" Background="#FFFBFBFB" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" BorderBrush="#FF0C142E" FontSize="16" Click="GoogleAuthorizeButton_Click" Width="160" />
             </Border>
             <Label x:Name="AuthorizedLabel" 
-                   Grid.Column="1" Grid.Row="6" Margin="180,178,0,0" 
-                   VerticalAlignment="Top" HorizontalAlignment="Left" 
-                   FontSize="15" Foreground="#FF2C7A00" Visibility="Hidden"
+                   Grid.Column="1" Grid.Row="6" Margin="180,90,0,0" 
+                   VerticalAlignment="Top" HorizontalAlignment="Left" Visibility="Hidden"
+                   FontSize="15" Foreground="#FF2C7A00" 
                    Content="Authorized!" Height="29"></Label>
-            <TextBlock Grid.Column="1" Margin="20" Grid.Row="7" TextWrapping="Wrap" FontSize="15" VerticalAlignment="Top" MaxWidth="600"><Run Text="You are authorizing this application to access Google Spreadsheets for the purpose of this Demo."/><LineBreak/><Run/><LineBreak/><Run Text="It will create a Spreadsheet to be used as a database of jobs."/><LineBreak/><Run/><LineBreak/><Run Text="The jobs stored in it will be then pulled into RPM where an Incident Tracking will associate those job information and stay in sync."/></TextBlock>
+            <TextBlock Grid.Column="1" Margin="20,10,20,20" Grid.Row="7" TextWrapping="Wrap" FontSize="15" VerticalAlignment="Top" MaxWidth="600" Text="This app uses a Google Docs spreadsheet for its example external data source. Authorize using a Google account to have the app create the example data."/>
         </Grid>
 
 

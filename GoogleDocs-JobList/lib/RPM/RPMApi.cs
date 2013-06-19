@@ -112,9 +112,10 @@ namespace RPM.Api
 
             RestResponse response = (RestResponse)this.client.Execute(request);
 
-            if (response.StatusDescription.ToString() == "Not Found")
+            string statusDescription = response.StatusDescription.ToString();
+            if (statusDescription == "Not Found" || statusDescription == "Bad Request")
             {
-                throw new WebException("Not Found");
+                throw new WebException(statusDescription);
             }
             JsonDeserializer js = new JsonDeserializer();
             response.Content = response.Content.Replace("{\"Result\":", "");

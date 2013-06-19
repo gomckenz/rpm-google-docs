@@ -29,3 +29,4 @@ _ReSharper*/
 $tf*/
 GoogleDocs-JobList/Properties/GoogleOAuthSettings.cs
 publish/
+*.pfx

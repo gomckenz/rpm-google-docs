@@ -14,6 +14,8 @@ using GoogleDocs_JobList.Properties;
 using GoogleDocs_JobList.AsyncWork;
 using System.Text;
 using Microsoft.Win32;
+using RPM.ApiResults;
+using System.Net;
 
 namespace GoogleDocs_JobList
 {
@@ -61,9 +63,28 @@ namespace GoogleDocs_JobList
             this.setupGoogleAccess();
             if (this.settingsAreComplete())
             {
-                this.sync = new RPMSync(this.RpmApiUrl, this.rpmApiKey);
-                this.sync.WorkComplete += sync_WorkComplete;
-                this.sync.ProgressChanged += sync_ProgressChanged;
+                bool hasErrors = true;
+                try
+                {
+                    this.sync = new RPMSync(this.RpmApiUrl, this.rpmApiKey);
+                    this.sync.WorkComplete += sync_WorkComplete;
+                    this.sync.ProgressChanged += sync_ProgressChanged;
+                    hasErrors = false;
+                }
+                catch (RPMApiError)
+                {
+                    this.saveSetting("RpmApiUrl", "");
+                    this.saveSetting("RpmApiKey", "");
+                }
+                catch (ProcessNotFoundException) {}
+                catch (WebException) {}
+                finally
+                {
+                    if (hasErrors)
+                    {
+                        this.showSetupWindow(true);
+                    }
+                }
             }
         }
 
@@ -165,6 +186,10 @@ namespace GoogleDocs_JobList
 
         public void syncRPMAsync()
         {
+            if (this.sync == null)
+            {
+                this.setup();
+            }
             this.sync.run(this.Jobs);
         }
 
