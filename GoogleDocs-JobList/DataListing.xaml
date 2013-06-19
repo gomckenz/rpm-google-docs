@@ -25,7 +25,9 @@
                     Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
                     HorizontalAlignment="Right" Width="36" Click="SetupButton_Click"
                     Height="36" Margin="0,0,0,1" Cursor="Hand">
-                <Image Source="pack://siteoforigin:,,,/Resources/setting_icon.png" HorizontalAlignment="Center" VerticalAlignment="Center" Width="25" Focusable="True" />
+                <Image HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Width="25" Focusable="True"
+                       Source="Resources/setting_icon.png"/>
             </Button>
             <Label 
                 Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Margin="40,0,0,0"
@@ -138,8 +140,9 @@
             <Image
                 Grid.Row="4"
                 Name="LoadingImage"
-                HorizontalAlignment="Left" Height="16" Margin="40,0,0,0"  VerticalAlignment="Center" Width="16" Source="pack://siteoforigin:,,,/Resources/loading.gif"/>
-
+                HorizontalAlignment="Left" VerticalAlignment="Center"
+                Width="16" Height="16" Margin="40,0,0,0"
+                Source="Resources/loading.gif"/>
         </Grid>
     </Grid>
 </Window>

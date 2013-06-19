@@ -236,7 +236,7 @@ namespace GoogleDocs_JobList
             if (!this.settingsAreComplete() || forceShow)
             {
                 SetupWindow w = new SetupWindow(
-                    this.OAuthAccessToken,
+                    this.OAuthAccessCode,
                     this.RpmApiUrl, this.rpmApiKey,
                     this.googleClientId,
                     this.googleClientSecret
