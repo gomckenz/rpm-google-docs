@@ -53,16 +53,21 @@ namespace GoogleDocs_JobList
         public string RpmApiUrl { get; private set; }
         private string rpmApiKey;
 
-        public App()
+        protected override void OnStartup(StartupEventArgs e)
         {
             this.setup();
         }
 
-        public void setup()
+        public void setup(bool openMainWindow = true)
         {
             this.setupGoogleAccess();
             if (this.settingsAreComplete())
             {
+                if (openMainWindow)
+                {
+                    DataListing dl = new DataListing();
+                    dl.Show();
+                }
                 bool hasErrors = true;
                 try
                 {
@@ -71,10 +76,13 @@ namespace GoogleDocs_JobList
                     this.sync.ProgressChanged += sync_ProgressChanged;
                     hasErrors = false;
                 }
-                catch (RPMApiError)
+                catch (RPMApiError e)
                 {
-                    this.saveSetting("RpmApiUrl", "");
-                    this.saveSetting("RpmApiKey", "");
+                    if (!e.Message.Contains("not enabled"))
+                    {
+                        this.saveSetting("RpmApiUrl", "");
+                        this.saveSetting("RpmApiKey", "");
+                    }
                 }
                 catch (ProcessNotFoundException) {}
                 catch (WebException) {}
@@ -188,7 +196,7 @@ namespace GoogleDocs_JobList
         {
             if (this.sync == null)
             {
-                this.setup();
+                this.setup(false);
             }
             this.sync.run(this.Jobs);
         }

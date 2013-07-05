@@ -59,6 +59,12 @@ namespace GoogleDocs_JobList.AsyncWork
                 {
                     throw new ProcessNotFoundException("The RPM Process \"External-JobInformation\" was not Found.");
                 }
+                if (!this.jobProcess.Enabled)
+                {
+                    RPMApiError error = new RPMApiError();
+                    error.Error = "The RPM Process \"External-JobInformation\" is not enabled.";
+                    throw error;
+                }
             }
         }
 
