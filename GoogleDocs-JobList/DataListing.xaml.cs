@@ -135,8 +135,15 @@ namespace GoogleDocs_JobList
 
         private void GoToRPM_Click(object sender, RoutedEventArgs e)
         {
-            this.loseFocus();
-            this.app.openRPMInBrowser();
+            try
+            {
+                this.loseFocus();
+                this.app.openRPMInBrowser();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void SetupButton_Click(object sender, RoutedEventArgs e)

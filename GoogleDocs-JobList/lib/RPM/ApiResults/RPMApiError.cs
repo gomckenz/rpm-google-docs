@@ -7,10 +7,10 @@ namespace RPM.ApiResults
 {
     class RPMApiError : Exception
     {
-        public string Error { get; set; }
+        public Dictionary<String, String> Error { get; set; }
         public override string Message {
             get {
-                return this.Error;
+				return this.Error["Message"];
             }
         }
     }

@@ -62,7 +62,9 @@ namespace GoogleDocs_JobList.AsyncWork
                 if (!this.jobProcess.Enabled)
                 {
                     RPMApiError error = new RPMApiError();
-                    error.Error = "The RPM Process \"External-JobInformation\" is not enabled.";
+                    error.Error = new Dictionary<string,string>{
+						{"Message", "The RPM Process \"External-JobInformation\" is not enabled."}
+					};
                     throw error;
                 }
             }
