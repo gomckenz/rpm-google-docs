@@ -11,6 +11,7 @@ namespace GoogleDocs_JobList.Properties
     {
         // To obtain this information, register an application at:
         // https://code.google.com/apis/console/
+		static public string ApplicationName = "";
         static public string OAuthClientId = "";
         static public string OAuthClientSecret = "";
     }
